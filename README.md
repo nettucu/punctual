@@ -2,7 +2,34 @@
 
 Geofenced employee time clock. Employees scan a QR code at their workplace and clock in or out from their phone; the punch is accepted only near the site (or recorded and flagged for review). Admins correct records, approve leave and export hour reports as CSV. FastAPI + SQLite, with continuous backup through Litestream.
 
-Features: sites with a QR code and a radius, punch flagging and review, correction and leave requests with an admin approval workflow, append-only audit trail, per-employee reports with public holidays, self-registration link.
+<p align="center">
+  <img src="docs/screenshots/clock.png" alt="Clock page on a phone" width="240">
+  &nbsp;
+  <img src="docs/screenshots/dashboard.png" alt="Admin dashboard" width="520">
+</p>
+
+## Features
+
+- **Geofenced punches:** each site has a position, a radius and a QR code to print. A punch far from the site, or with a weak GPS fix, is recorded and flagged for review (or rejected, configurable).
+- **Append-only record:** a punch is never edited or deleted. An admin voids it and adds a replacement, and every change is kept in a change history you can export.
+- **Requests with approval:** employees ask for missing punches, vacation, medical leave and free days; admins approve or reject with a reason.
+- **Reports:** hours per employee against their norm (week, month, list), overtime, anomalies, public holidays, CSV export.
+- **Self-service accounts:** one shared registration link; accounts stay inactive until an admin activates them.
+- **Backups:** continuous SQLite replication with Litestream, restored automatically on a fresh container.
+- **English and Romanian** interface (`PUNCTUAL_LOCALE`); the public holiday calendar is Romania's.
+
+| Reports | Corrections |
+|---|---|
+| ![Reports](docs/screenshots/reports.png) | ![Corrections](docs/screenshots/corrections.png) |
+
+## Try it with demo data
+
+    uv sync
+    export PUNCTUAL_DB_PATH=/tmp/punctual-demo.db PUNCTUAL_COOKIE_SECURE=false
+    uv run punctual-admin seed-demo       # admin@example.com / Demo-Password-1!
+    uv run punctual                       # http://localhost:8000
+
+The demo adds four employees, two sites and three weeks of punches, including a flagged location, a forgotten departure, a corrected punch and pending requests. It refuses to run on a database that already has employees. The screenshots above come from it: `uv run python scripts/screenshots.py`.
 
 ## Run locally
 

@@ -1,4 +1,4 @@
-"""Admin bootstrap CLI: `punctual-admin create-admin`."""
+"""Admin CLI: `punctual-admin create-admin`, `punctual-admin seed-demo`."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import sqlite3
 import sys
 
 from punctual.db import connect, init_db
+from punctual.demo import ADMIN_EMAIL, DEMO_PASSWORD, seed_demo
 from punctual.security import hash_password
 
 
@@ -63,7 +64,18 @@ def main() -> None:
     )
     p.add_argument("--name", required=True)
     p.add_argument("--email", required=True)
+    sub.add_parser(
+        "seed-demo",
+        help=f"fill an empty database with demo data (admin {ADMIN_EMAIL}, password {DEMO_PASSWORD})",
+    )
     args = parser.parse_args()
+    if args.cmd == "seed-demo":
+        try:
+            seed_demo()
+        except ValueError as exc:
+            sys.exit(str(exc))
+        print(f"demo data created: log in as {ADMIN_EMAIL} / {DEMO_PASSWORD}")
+        return
     password: str = getpass.getpass("Password: ")
     if password != getpass.getpass("Repeat: "):
         sys.exit("passwords differ")

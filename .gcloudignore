@@ -17,3 +17,5 @@ deploy/verify-backup.sh
 deploy/README.md
 deploy/docker-compose.yml
 deploy/Caddyfile
+docs
+scripts

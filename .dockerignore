@@ -10,3 +10,5 @@ deploy/cloudrun
 deploy/verify-backup.sh
 deploy/docker-compose.yml
 deploy/Caddyfile
+docs
+scripts
