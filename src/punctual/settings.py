@@ -24,7 +24,11 @@ class Settings(BaseSettings):
         forgotten_cutoff_hour: Local hour after which a still-open shift counts as a forgotten
             clock-out; the employee is blocked until they declare the departure time.
         late_in_hour: From this local hour on, the employee UI asks whether an arrival is really happening now.
-        early_out_minutes: A departure this soon after the arrival asks for confirmation in the clock page.
+        early_out_minutes: A departure sooner than this after the arrival is refused (0 disables); the employee
+            must ask an admin to void the arrival from Corrections.
+        min_break_minutes: An arrival sooner than this after a departure is refused (0 disables); the employee
+            declares the real arrival time as a correction request instead.
+        max_punches_per_day: Most punches (voided ones excluded) one employee may record per local day (0 disables).
         long_shift_h: Closed shifts longer than this get a `long shift` anomaly.
         public_url: Base URL encoded in QR codes (e.g. https://punctual.example.com); falls back to the request URL.
         bootstrap_admin_email: With the password, creates the first admin on startup when no employees exist.
@@ -55,6 +59,8 @@ class Settings(BaseSettings):
     forgotten_cutoff_hour: int = 22
     late_in_hour: int = 14
     early_out_minutes: int = 5
+    min_break_minutes: int = 15
+    max_punches_per_day: int = 6
     long_shift_h: float = 12.0
     bootstrap_admin_email: str = ""
     bootstrap_admin_password: str = ""

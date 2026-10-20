@@ -18,6 +18,8 @@ from punctual.settings import settings
 def client(tmp_path, monkeypatch) -> TestClient:
     monkeypatch.setattr(settings, "db_path", str(tmp_path / "t.db"))
     monkeypatch.setattr(settings, "cookie_secure", False)
+    for guard in ("early_out_minutes", "min_break_minutes", "max_punches_per_day"):
+        monkeypatch.setattr(settings, guard, 0)  # tests tap fast; guardrail tests opt in
     db.init_db()
     with db.connect() as conn:
         conn.execute(

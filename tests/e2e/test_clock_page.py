@@ -23,14 +23,10 @@ def test_arrival_then_departure_at_site(page, live):
     expect(page.locator("#msg")).to_have_text("Recorded ✓")
     expect(page.locator("#chipt")).to_contain_text("At work since")
     expect(page.locator("#gol")).to_contain_text("Departure")
-    # departure right after arrival asks for confirmation
+    # departure right after arrival is refused by the server
     press(page)
-    expect(page.locator("#early")).to_be_visible()
-    page.click("#earlyno")
+    expect(page.locator("#msg")).to_contain_text("too soon")
     expect(page.locator("#chipt")).to_contain_text("At work since")
-    press(page)
-    page.click("#earlyyes")
-    expect(page.locator("#chipt")).to_have_text("Not clocked in")
 
 
 def test_near_site_is_flagged_but_recorded(page, live):

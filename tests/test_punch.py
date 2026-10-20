@@ -260,7 +260,7 @@ def test_status_reports_minutes_since_arrival(client):
     assert client.get("/api/punch/status").json()["open_minutes"] is None
     client.post("/api/punch", json={"site_id": sid, "kind": "in", **HERE})
     s = client.get("/api/punch/status").json()
-    assert s["open_minutes"] == 0 and s["early_out_minutes"] == 5
+    assert s["open_minutes"] == 0
 
 
 def test_dashboard_follows_the_clock_page_rules(client):
@@ -295,3 +295,54 @@ def test_dashboard_lists_forgotten_arrival_request_without_punch(client):
     login(client, "boss@example.com")
     (f,) = client.get("/api/admin/overview").json()["forgotten_open"]
     assert f["employee_id"] == 1 and f["punch_id"] is None
+
+
+def _punch(client, sid, kind):
+    return client.post("/api/punch", json={"site_id": sid, "kind": kind, **HERE})
+
+
+def test_out_right_after_in_is_refused(client, monkeypatch):
+    monkeypatch.setattr(settings, "early_out_minutes", 5)
+    sid = setup_site(client)
+    _punch(client, sid, "in")
+    r = _punch(client, sid, "out")
+    assert r.status_code == 409 and "too soon" in r.json()["detail"]
+    assert client.get("/api/punch/status").json()["next_kind"] == "out"
+
+
+def test_in_right_after_out_is_refused(client, monkeypatch):
+    sid = setup_site(client)
+    _punch(client, sid, "in")
+    _punch(client, sid, "out")
+    monkeypatch.setattr(settings, "min_break_minutes", 15)
+    r = _punch(client, sid, "in")
+    assert r.status_code == 409 and "real arrival time" in r.json()["detail"]
+
+
+def test_daily_cap(client, monkeypatch):
+    sid = setup_site(client)
+    monkeypatch.setattr(settings, "max_punches_per_day", 4)
+    for kind in ("in", "out", "in", "out"):
+        assert _punch(client, sid, kind).status_code == 201
+    r = _punch(client, sid, "in")
+    assert r.status_code == 409 and "4 punches" in r.json()["detail"]
+
+
+def test_delete_employee_only_without_history(client):
+    login(client, "ana@example.com")
+    ana = client.get("/auth/me").json()["id"]
+    sid = setup_site(client)
+    client.post("/auth/logout")
+    login(client, "boss@example.com")
+    boss = client.get("/auth/me").json()["id"]
+    assert client.delete(f"/api/employees/{boss}").status_code == 409
+    fresh = client.post(
+        "/api/employees",
+        json={"name": "Typo", "email": "typo@example.com", "password": PW, "role": "employee", "norma_h": 8, "site_ids": [sid]},
+    ).json()["id"]
+    assert client.delete(f"/api/employees/{fresh}").status_code == 204
+    assert client.delete(f"/api/employees/{fresh}").status_code == 404
+    login(client, "ana@example.com")
+    _punch(client, sid, "in")
+    login(client, "boss@example.com")
+    assert client.delete(f"/api/employees/{ana}").status_code == 409

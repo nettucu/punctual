@@ -175,3 +175,28 @@ def update_employee(
         _set_sites(conn, employee_id, body.site_ids)
         logger.debug(f"employee {employee_id} updated by admin {admin.id}")
         return _load(conn, employee_id)
+
+
+@router.delete("/{employee_id}", status_code=204)
+def delete_employee(
+    employee_id: int, admin: Annotated[Me, Depends(require_admin)]
+) -> None:
+    """Delete an account created by mistake. Only an employee with no recorded history can go.
+
+    Anyone with punches, requests, leave, attempts or admin decisions stays (deactivate instead), because the
+    audit trail is append-only.
+
+    Raises:
+        HTTPException: 404 if missing, 409 for oneself or an employee that has history.
+    """
+    if employee_id == admin.id:
+        raise HTTPException(status_code=409, detail=t("err.self_demote"))
+    with connect() as conn:
+        _load(conn, employee_id)
+        try:
+            conn.execute("DELETE FROM sessions WHERE employee_id = ?", (employee_id,))
+            conn.execute("DELETE FROM employee_sites WHERE employee_id = ?", (employee_id,))
+            conn.execute("DELETE FROM employees WHERE id = ?", (employee_id,))
+        except sqlite3.IntegrityError as exc:  # a foreign key points at them: history exists
+            raise HTTPException(status_code=409, detail=t("err.employee_has_history")) from exc
+    logger.warning(f"employee {employee_id} deleted by admin {admin.id}")

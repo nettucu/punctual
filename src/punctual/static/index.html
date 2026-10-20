@@ -39,8 +39,6 @@
 <div><label data-i18n="index.real_time">Real date and time</label><input type="datetime-local" name="local_time" required></div>
 <div><label data-i18n="index.note_req">Explanation (required)</label><textarea name="note" rows="3" minlength="3" required data-i18n-ph="index.forgot_ph" placeholder="e.g. I forgot to clock out, I left at 17:30"></textarea></div>
 <div class="row"><button class="btn" data-i18n="index.send_req">Send the request</button><button type="button" class="btn ghost" id="rcancel" data-i18n="common.cancel">Cancel</button></div></form></dialog>
-<dialog id="early"><h2 id="earlyt"></h2><p class="hint" data-i18n="index.early_hint">If you pressed Arrival by mistake, ask the administrator to void it from Corrections.</p>
-<div class="row"><button type="button" class="btn" id="earlyyes" data-i18n="index.early_yes">Yes, I am leaving now</button><button type="button" class="btn ghost" id="earlyno" data-i18n="index.early_no">No, I am staying</button></div></dialog>
 <dialog id="late"><h2 id="latet"></h2><p class="hint" data-i18n="index.late_hint">If you arrived earlier and forgot to clock in, declare the real arrival time.</p>
 <div class="row"><button type="button" class="btn" id="latenow" data-i18n="index.late_yes">Yes, I am arriving now</button><button type="button" class="btn ghost" id="lateforgot" data-i18n="index.late_forgot">I forgot my arrival</button><button type="button" class="btn ghost" id="latecancel" data-i18n="common.cancel">Cancel</button></div></dialog>
 </main>
@@ -77,11 +75,8 @@ async function refresh(){
   bar.className='bar'+(hrs>=ME.norma_h?' over':'');bar.firstChild.style.width=Math.min(100,hrs/ME.norma_h*100)+'%';
 }
 go.onclick=()=>{
- if(STATE.next_kind==='out'&&STATE.state==='open'&&STATE.open_minutes<STATE.early_out_minutes){earlyt.textContent=t(STATE.open_minutes===1?'index.early_one':'index.early_many',{n:STATE.open_minutes});early.showModal();return}
  if(STATE.next_kind==='in'&&new Date().getHours()>=STATE.late_in_hour){latet.textContent=t('index.late_title',{time:localNow().slice(11)});late.showModal();return}
  doPunch()};
-earlyyes.onclick=()=>{early.close();doPunch()};
-earlyno.onclick=()=>early.close();
 latenow.onclick=()=>{late.close();doPunch()};
 lateforgot.onclick=()=>{late.close();openReq('in')};
 latecancel.onclick=()=>late.close();

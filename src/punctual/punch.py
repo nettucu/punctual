@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from punctual.attempts import record_attempt
 from punctual.auth import Me, current_user
-from punctual.clock import local_hm, local_str
+from punctual.clock import day_bounds, local_date, local_hm, local_str, parse_utc, utc_str
 from punctual.db import connect
 from punctual.geofence import Site, distance_m, is_inside
 from punctual.i18n import t
@@ -65,6 +65,33 @@ def forgotten_message(st: ShiftState) -> str:
     """Blocking message for a shift left open past the cutoff."""
     day: str = local_str(st.open_since, "%d.%m") if st.open_since else ""
     return t("punch.forgotten", day=day, since=local_hm(st.open_since))
+
+
+def _too_frequent(conn, employee_id: int, kind: str, st: ShiftState) -> tuple[str, str] | None:
+    """Refusal for punches that follow the previous one too closely or pile up within a day (taps, tests, retries)."""
+    now: datetime = datetime.now(UTC)
+    if kind == "out" and st.open_punch_id and st.open_since:
+        mins: int = int((now - st.open_since).total_seconds() // 60)
+        if mins < settings.early_out_minutes:
+            return ("too_soon_out", t("punch.too_soon_out", n=mins))
+    last = conn.execute(
+        "SELECT kind, ts_utc FROM live_punches WHERE employee_id = ? ORDER BY ts_utc DESC, id DESC LIMIT 1",
+        (employee_id,),
+    ).fetchone()
+    if kind == "in" and last and last["kind"] == "out":
+        mins = int((now - parse_utc(last["ts_utc"])).total_seconds() // 60)
+        if mins < settings.min_break_minutes:
+            return ("too_soon_in", t("punch.too_soon_in", at=local_hm(last["ts_utc"])))
+    if settings.max_punches_per_day:
+        day = local_date(now)
+        start, end = day_bounds(day, day)
+        n: int = conn.execute(
+            "SELECT COUNT(*) FROM live_punches WHERE employee_id = ? AND ts_utc >= ? AND ts_utc < ?",
+            (employee_id, utc_str(start), utc_str(end)),
+        ).fetchone()[0]
+        if n >= settings.max_punches_per_day:
+            return ("daily_limit", t("punch.daily_limit", n=n))
+    return None
 
 
 @router.get("/status", response_model=Status)
@@ -138,7 +165,8 @@ def punch(body: PunchIn, user: Annotated[Me, Depends(current_user)]) -> PunchOut
     Raises:
         HTTPException: 403 if the site is not assigned (or, in block mode, the position is outside the geofence),
             422 in block mode if the GPS fix is too inaccurate, 409 when the kind does not fit the current state
-            (see `effective_state`), including any punch while a forgotten shift is still undeclared.
+            (see `effective_state`), including any punch while a forgotten shift is still undeclared, and when the
+            punch is too soon after the previous one or over the daily cap (`_too_frequent`).
     """
 
     def reject(
@@ -214,6 +242,8 @@ def punch(body: PunchIn, user: Annotated[Me, Depends(current_user)]) -> PunchOut
                 "already_in",
                 t("punch.already_in", since=local_hm(st.open_since)),
             )
+        if refusal is None:
+            refusal = _too_frequent(conn, user.id, kind, st)
         if refusal:
             conn.rollback()  # release the write lock before logging the attempt
             reject(409, refusal[0], refusal[1], dist)

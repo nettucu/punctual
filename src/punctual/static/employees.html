@@ -19,7 +19,8 @@ async function load(){SITES=await api('GET','/api/sites');drawSites();const es=a
   h('td',{},h('span',{class:'badge '+(x.role==='admin'?'brand':'')},t('employees.badge.'+x.role))),h('td',{class:'num'},x.norma_h+' h'),
   h('td',{},x.site_ids.map(i=>h('span',{class:'badge'},(SITES.find(s=>s.id===i)||{}).name))),
   h('td',{class:'num'},h('button',{class:'btn ghost sm',onclick:()=>{f.id.value=x.id;f.name.value=x.name;f.email.value=x.email;f.email.disabled=true;f.role.value=x.role;f.norma_h.value=x.norma_h;
-   f.active.checked=x.active;f.password.value='';f.password.required=false;pl.textContent=t('employees.pw_reset');drawSites(x.site_ids);ft.textContent=t('employees.edit');f.scrollIntoView({behavior:'smooth'})}},t('common.edit'))))))}
+   f.active.checked=x.active;f.password.value='';f.password.required=false;pl.textContent=t('employees.pw_reset');drawSites(x.site_ids);ft.textContent=t('employees.edit');f.scrollIntoView({behavior:'smooth'})}},t('common.edit')),' ',
+   h('button',{class:'btn danger sm',onclick:async()=>{if(confirm(t('employees.confirm_delete',{name:x.name}))){await api('DELETE','/api/employees/'+x.id);P.toast(t('employees.deleted'));load()}}},t('common.delete'))))))}
 lk.onclick=async()=>{const r=await api('POST','/api/registration-link');lkv.value=location.origin+r.path;lkv.hidden=lkc.hidden=false;P.toast(t('employees.link_generated'))};
 lkc.onclick=async()=>{lkv.select();await navigator.clipboard.writeText(lkv.value);P.toast(t('common.copied'))};
 const reset=()=>{f.reset();f.id.value='';f.email.disabled=false;f.password.required=true;pl.textContent=t('employees.pw_new');drawSites();ft.textContent=t('employees.add')};cancel.onclick=reset;
