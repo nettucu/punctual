@@ -7,7 +7,7 @@ FROM python:3.11-slim
 COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /usr/local/bin/uv
 COPY --from=litestream /usr/local/bin/litestream /usr/local/bin/litestream
 WORKDIR /app
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src ./src
 RUN uv sync --frozen --no-dev
 COPY deploy/litestream.yml /etc/litestream.yml

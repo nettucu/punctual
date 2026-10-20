@@ -20,3 +20,4 @@ deploy/Caddyfile
 docs
 scripts
 gcs-key.json
+backup

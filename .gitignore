@@ -24,3 +24,6 @@ secrets/
 # private branding (see README)
 src/punctual/static/custom/
 gcs-key.json
+
+# DB backups (employee PII)
+/backup/
