@@ -11,6 +11,7 @@ services:
       PORT: "8080"
     volumes:
       - data:/data
+      # - ./gcs-key.json:/run/secrets/gcs.json:ro   # GCS backup from a VPS, see deploy/README.md
     expose:
       - "8080"
 

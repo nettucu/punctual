@@ -25,7 +25,11 @@ docker compose -f deploy/docker-compose.yml --env-file .env up -d --build
 
 Point your domain's DNS at the host first; Caddy obtains the certificate on its own. Data lives in the `data` volume.
 
-**Backups.** Set `LITESTREAM_REPLICA_URL` in `.env` to any Litestream target, for example `s3://bucket/punctual` (S3, MinIO, Backblaze B2, ...) with `LITESTREAM_ACCESS_KEY_ID` and `LITESTREAM_SECRET_ACCESS_KEY`. On boot a fresh container restores the DB from the replica, then replicates with a 1 s sync. Without a replica URL the entrypoint prints a warning and runs **without backups**.
+**Backups.** Set `LITESTREAM_REPLICA_URL` in `.env`; on boot a fresh container restores the DB from the replica, then replicates with a 1 s sync. Without it the entrypoint prints a warning and runs **without backups**. Credentials depend on the target:
+
+- **S3, MinIO, Backblaze B2:** `s3://bucket/punctual` plus `LITESTREAM_ACCESS_KEY_ID` and `LITESTREAM_SECRET_ACCESS_KEY` (these two are for S3-compatible storage only).
+- **Google Cloud Storage:** `gs://bucket/db-v5` plus a service-account key file with access to that bucket. Save it as `gcs-key.json` next to `docker-compose.yml`, uncomment the `gcs.json` volume line in the compose file and set `GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcs.json` in `.env`. (On Cloud Run no key is needed, see B.)
+- **Local drill:** `file:///replica` with a volume mounted at `/replica`.
 
 ## B. Google Cloud Run
 

@@ -19,3 +19,4 @@ deploy/docker-compose.yml
 deploy/Caddyfile
 docs
 scripts
+gcs-key.json
