@@ -129,6 +129,25 @@ const P = (() => {
   };
   const locale = {en: 'en-GB', ro: 'ro-RO'}[window.LOCALE] || 'en-GB';  // for toLocale*String
   const fmt = n => n.toFixed(2).replace(/\.00$/, '');
+  // Browsers show datetime-local in the OS locale (AM/PM on en-US). Swap it for date + 24 h selects; the hidden
+  // native input stays the source of truth, so `el.value` (get, set, form reset) works unchanged for page code.
+  const two = n => String(n).padStart(2, '0');
+  const range = n => Array.from({length: n}, (_, i) => new Option(two(i), two(i)));
+  document.querySelectorAll('input[type=datetime-local]').forEach(el => {
+    const date = h('input', {type: 'date', required: el.required}), hh = h('select', {}), mm = h('select', {});
+    hh.append(...range(24)); mm.append(...range(60));
+    const get = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+    const show = () => { const v = get.get.call(el); date.value = v.slice(0, 10); hh.value = v.slice(11, 13) || '00'; mm.value = v.slice(14, 16) || '00'; };
+    const push = () => get.set.call(el, date.value ? `${date.value}T${hh.value}:${mm.value}` : '');
+    [date, hh, mm].forEach(c => c.addEventListener('input', push));
+    Object.defineProperty(el, 'value', {get: () => get.get.call(el), set: v => { get.set.call(el, v); show(); }});
+    // min/max only bound the date part here; the server still rejects future times.
+    for (const k of ['min', 'max']) Object.defineProperty(el, k, {get: () => date[k], set: v => { date[k] = v.slice(0, 10); }});
+    el.required = false; el.style.display = 'none';
+    el.form?.addEventListener('reset', () => setTimeout(show));
+    el.before(h('div', {class: 'dt24', style: 'display:grid;grid-template-columns:1fr auto auto;gap:.4rem'}, date, hh, mm));
+    show();
+  });
   applyI18n();
   document.addEventListener('DOMContentLoaded', () => applyI18n());
   return {h, api, toast, header, fmt, getFix, watchPermission, icon, t, applyI18n, errorText, locale};

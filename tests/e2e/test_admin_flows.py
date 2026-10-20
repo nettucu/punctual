@@ -158,3 +158,23 @@ def test_pages_have_no_untranslated_keys_in_romanian(boss, live):
     boss.goto(f"{live.url}/admin")
     expect(boss.locator("main h1")).to_contain_text("Dashboard")
     expect(boss.locator("aside.side")).to_contain_text("Rapoarte")
+
+
+def test_time_picker_is_24h_and_value_roundtrips(page, live):
+    login(page, live, "ana@example.com")
+    page.click("#reqbtn")
+    page.evaluate("document.querySelector('#rf [name=local_time]').value = '2026-01-05T17:45'")
+    sel = page.locator("#rf .dt24 select")
+    expect(sel.nth(0)).to_have_value("17")
+    expect(sel.nth(1)).to_have_value("45")
+    sel.nth(0).select_option("08")
+    assert page.evaluate("document.querySelector('#rf [name=local_time]').value") == "2026-01-05T08:45"
+
+
+def test_punch_row_shows_map_icon_for_ok_punch(page, boss, live):
+    login(page, live, "ana@example.com")
+    page.context.set_geolocation(AT_SITE)
+    page.click("#go")
+    expect(page.locator("#chipt")).to_contain_text("At work since")
+    boss.goto(f"{live.url}/admin/corrections")
+    expect(boss.locator("#rows a[href*='google.com/maps']").first).to_be_visible()
