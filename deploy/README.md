@@ -39,7 +39,9 @@ PROJECT=my-project ADMIN_EMAIL=you@example.com TIMEZONE=Europe/Bucharest UI_LOCA
 
 Optional: `UI_LOCALE` (`en` default, or `ro`), `REGION` (default `europe-west1`), `SERVICE`, `BUCKET`, `ACCOUNT` (default: your active gcloud account).
 
-The script creates a private versioned GCS bucket, a least-privilege service account limited to that bucket, a Secret Manager secret for the first-admin password, and deploys with `--max-instances=1 --no-cpu-throttling` (Litestream must keep replicating between requests). It prompts for the admin password only the first time, when the secret does not exist yet. Re-runs reuse it.
+The script creates a private versioned GCS bucket, a least-privilege service account limited to that bucket, a Secret Manager secret for the first-admin password, and deploys with `--max-instances=1 --no-cpu-throttling` (Litestream must keep replicating between requests). It prompts for the admin password only the first time, when the secret does not exist yet.
+
+**Updates.** Re-run with just `PROJECT=my-project deploy/cloudrun/deploy.sh`. When the service exists the script shows its revision and env var names, restores the latest replica to check the backup (if `litestream` and `sqlite3` are installed), then asks before deploying. It deploys the code only: env vars, secrets and data stay as they are. It offers to remove the bootstrap password if it is still attached.
 
 It changes nothing in your global gcloud configuration. Replica location: `gs://<bucket>/db-v5`.
 
