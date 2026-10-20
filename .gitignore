@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.venv/
+__pycache__/
+*.db
+.env
+secrets/
+*.db-shm
+*.db-wal
+
+.serena/
+.claude/
+.pytest_cache/
+.ruff_cache/
+
+# private branding (see README)
+src/punctual/static/custom/

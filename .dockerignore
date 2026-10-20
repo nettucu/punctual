@@ -1,0 +1,12 @@
+.venv
+.git
+*.db
+*.db-*
+tests
+**/__pycache__
+.env
+secrets
+deploy/cloudrun
+deploy/verify-backup.sh
+deploy/docker-compose.yml
+deploy/Caddyfile

@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title>Punctual · Employee manual</title>
+<body><main><h1>Employee manual</h1><p class="sub">How to use the time clock from your phone.</p>
+<div class="card"><h2>1. Creating your account</h2><ol>
+<li>An administrator sends you a link (valid for 6 hours). Open it on your phone.</li>
+<li>Fill in your name, email and password, then tap <b>Create account</b>.</li>
+<li>The password needs at least <b>12 characters</b>, <b>one uppercase letter</b>, <b>one digit</b> and <b>one special character</b> (for example ! ? - _ . #).</li>
+<li>The account stays inactive until an administrator activates it and assigns your work site. Only then can you sign in.</li></ol></div>
+<div class="card"><h2>2. Clocking in and out</h2><ol>
+<li>Scan the QR code at the entrance of the site. The app opens at the right site; sign in if asked.</li>
+<li>Allow location access when the phone asks. You cannot clock in without GPS.</li>
+<li>Tap the big button: <b>Arrival</b> when you start, <b>Departure</b> when you finish.</li>
+<li>You can only clock in at the sites assigned to you.</li></ol>
+<p class="sub" style="margin:0">The phone's location must be on, otherwise the punch cannot be made. If you are outside the zone or the GPS signal is weak, the punch is still recorded but flagged for review, and an administrator checks it later.</p></div>
+<div class="card"><h2>3. Forgotten departure</h2><p>If you did not clock out, you cannot clock in again until you declare the time you left, with an explanation. An administrator checks the declaration. After 22:00 (by default) a shift left open counts as forgotten.</p>
+<p>If you forgot to clock in on arrival, use <b>I forgot to clock in on arrival</b> and give the real time. An administrator reviews the request.</p></div>
+<div class="card"><h2>4. Correction request</h2><p>If you forgot or got a punch wrong, use <b>Request a correction</b> on the main page: choose what is missing (arrival or departure), the site, the real date and time, and write an explanation. The administrator approves or rejects the request. Nothing is deleted from the history: every change stays on record.</p></div>
+<div class="card"><h2>5. Leave and days off</h2><p>Under <b>Leave or a day off</b> choose the type (<b>vacation</b>, <b>medical leave</b> or <b>free day</b>), the start and end dates (inclusive) and, optionally, an explanation. For several days fill in both dates; for a single day use the same date in both fields. Medical leave can also be requested after it has started, up to 60 days back (the other types, up to 14 days). Weekends and public holidays inside the range do not count. Once approved, the days are marked in the reports and no hours are expected on them. The administrator's decision is final.</p></div>
+<div class="card"><h2>6. Security</h2><ul>
+<li>Do not share your password. Punches made with your account are yours.</li>
+<li>After 5 wrong passwords the account is locked for 15 minutes.</li>
+<li>The session expires after one hour; sign in again.</li>
+<li>Forgot your password or need help? Ask an administrator for a new account or a password reset.</li></ul></div>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>(async()=>{const r=await fetch('/auth/me');if(!r.ok){location.href='/login';return}const me=await r.json();P.header(me,me.role==='admin')})();</script></body></html>

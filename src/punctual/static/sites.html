@@ -1,0 +1,21 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="sites.title">Punctual · Sites</title>
+<body><main><h1 data-i18n="sites.heading">Sites</h1><p class="sub" data-i18n="sites.sub">The geographic zones where employees can clock in and out.</p>
+<div class="card flush"><div class="tbl"><table><thead><tr><th data-i18n="common.name">Name<th class="num" data-i18n="sites.lat">Latitude<th class="num" data-i18n="sites.lon">Longitude<th class="num" data-i18n="sites.radius">Radius<th></thead><tbody id="rows"></tbody></table></div></div>
+<form id="f" class="card"><h2 id="ft" data-i18n="sites.add">Add site</h2><input type="hidden" name="id">
+<div class="form"><div><label data-i18n="common.name">Name</label><input name="name" required></div><div><label data-i18n="sites.lat">Latitude</label><input name="lat" type="number" step="any" required></div>
+<div><label data-i18n="sites.lon">Longitude</label><input name="lon" type="number" step="any" required></div><div><label data-i18n="sites.radius_m">Radius (meters)</label><input name="radius_m" type="number" step="any" value="100" min="1" required></div></div>
+<div class="row" style="margin-top:1rem"><button class="btn" data-i18n="common.save">Save</button><button type="button" class="btn ghost" id="here"><span data-i18n="sites.here">📍 Use my location</span></button><button type="button" class="btn ghost" id="cancel" data-i18n="common.cancel">Cancel</button></div></form>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,t}=P;
+async function load(){const s=await api('GET','/api/sites');
+ rows.replaceChildren(...(s.length?s.map(x=>h('tr',{},h('td',{},h('b',{},x.name)),h('td',{class:'num'},x.lat),h('td',{class:'num'},x.lon),h('td',{class:'num'},x.radius_m+' m'),
+  h('td',{class:'num'},h('button',{class:'btn ghost sm',onclick:()=>{for(const k in x)if(f[k])f[k].value=x[k];ft.textContent=t('sites.edit');f.scrollIntoView({behavior:'smooth'})}},t('common.edit')),' ',
+   h('button',{class:'btn danger sm',onclick:async()=>{if(confirm(t('sites.confirm_delete',{name:x.name}))){await api('DELETE','/api/sites/'+x.id);P.toast(t('sites.deleted'));load()}}},t('common.delete'))))):
+  [h('tr',{},h('td',{colspan:5,class:'empty'},t('sites.empty')))]))}
+const reset=()=>{f.reset();f.id.value='';ft.textContent=t('sites.add')};cancel.onclick=reset;
+here.onclick=()=>navigator.geolocation.getCurrentPosition(p=>{f.lat.value=p.coords.latitude.toFixed(6);f.lon.value=p.coords.longitude.toFixed(6)},()=>P.toast(t('sites.geo_failed'),'bad'));
+f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));const id=d.id;delete d.id;for(const k of['lat','lon','radius_m'])d[k]=parseFloat(d[k]);
+ await api(id?'PUT':'POST',id?'/api/sites/'+id:'/api/sites',d);P.toast(t('common.saved'));reset();load()};
+(async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);load()})();
+</script></body></html>

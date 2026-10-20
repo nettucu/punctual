@@ -1,0 +1,4 @@
+{$PUNCTUAL_DOMAIN} {
+	encode gzip
+	reverse_proxy punctual:8080
+}

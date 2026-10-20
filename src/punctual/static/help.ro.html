@@ -1,0 +1,24 @@
+<!doctype html><html lang="ro"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title>Punctual · Manual angajat</title>
+<body><main><h1>Manual pentru angajați</h1><p class="sub">Cum folosești aplicația de pontaj de pe telefon.</p>
+<div class="card"><h2>1. Crearea contului</h2><ol>
+<li>Primești de la un administrator un link (valabil 6 ore). Deschide-l pe telefon.</li>
+<li>Completează numele, emailul și parola, apoi apasă <b>Creează cont</b>.</li>
+<li>Parola trebuie să aibă minim <b>12 caractere</b>, cel puțin <b>o literă mare</b>, <b>o cifră</b> și <b>un caracter special</b> (de exemplu ! ? - _ . #).</li>
+<li>Contul rămâne inactiv până când un administrator îl activează și îți atribuie locația de lucru. Abia apoi te poți autentifica.</li></ol></div>
+<div class="card"><h2>2. Pontarea sosirii și a plecării</h2><ol>
+<li>Scanează codul QR de la intrarea în clinică. Se deschide aplicația la locația corectă; autentifică-te dacă ți se cere.</li>
+<li>Permite accesul la locație când telefonul întreabă. Fără GPS nu se poate ponta.</li>
+<li>Apasă butonul mare: <b>Sosire</b> la început, <b>Plecare</b> la sfârșitul programului.</li>
+<li>Pontajul se face doar la locațiile care ți-au fost atribuite.</li></ol>
+<p class="sub" style="margin:0">Locația telefonului trebuie să fie pornită, altfel pontajul nu se poate face. Dacă ești în afara zonei sau semnalul GPS este slab, pontajul se înregistrează oricum, dar este marcat „de verificat” și un administrator îl verifică ulterior.</p></div>
+<div class="card"><h2>3. Plecare uitată</h2><p>Dacă nu te-ai pontat la plecare, nu poți ponta din nou până nu declari ora la care ai plecat și o explicație. Un administrator verifică declarația. După ora 22:00 o tură rămasă deschisă este considerată uitată.</p>
+<p>Dacă ai uitat să te pontezi la sosire, folosește <b>Am uitat să mă pontez la sosire</b> și spune ora reală. Cererea este verificată de un administrator.</p></div>
+<div class="card"><h2>4. Cerere de corecție</h2><p>Dacă ai uitat sau ai greșit un pontaj, folosește <b>Cerere de corecție</b> din pagina principală: alege ce lipsește (sosire sau plecare), locația, data și ora reală și scrie o explicație. Administratorul aprobă sau respinge cererea. Nimic nu se șterge din istoric: orice modificare rămâne înregistrată.</p></div>
+<div class="card"><h2>5. Concediu și zile libere</h2><p>În <b>Concediu sau zi liberă</b> alegi tipul (<b>Co</b> concediu de odihnă, <b>Cm</b> concediu medical sau <b>Zl</b> zi liberă), data de început și data de sfârșit (inclusiv) și, opțional, o explicație. Pentru mai multe zile completezi ambele date; pentru o singură zi pui aceeași dată în ambele câmpuri. Concediul medical se poate cere și după ce a început, până la 60 de zile în urmă (celelalte tipuri, până la 14 zile). Weekendurile și sărbătorile legale din interval nu se numără. După aprobare, zilele apar marcate în rapoarte și nu se așteaptă ore în ele. Decizia administratorului este finală.</p></div>
+<div class="card"><h2>6. Securitate</h2><ul>
+<li>Nu da parola nimănui. Pontajul făcut cu contul tău îți aparține.</li>
+<li>După 5 parole greșite contul se blochează 15 minute.</li>
+<li>Sesiunea expiră după o oră; autentifică-te din nou.</li>
+<li>Ai uitat parola sau ai nevoie de ajutor? Cere unui administrator un cont nou sau resetarea parolei.</li></ul></div>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>(async()=>{const r=await fetch('/auth/me');if(!r.ok){location.href='/login';return}const me=await r.json();P.header(me,me.role==='admin')})();</script></body></html>

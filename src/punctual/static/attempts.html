@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="attempts.title">Punctual · Rejected attempts</title>
+<body><main><h1 data-i18n="attempts.heading">Rejected attempts</h1><p class="sub" data-i18n="attempts.sub">Punches the app refused (too far, departure without arrival, etc.). They are not counted in hours. They are deleted automatically after the retention period (90 days by default).</p>
+<form id="q" class="card form"><div><label data-i18n="common.from">From</label><input type="date" name="from" required></div><div><label data-i18n="common.to">To</label><input type="date" name="to" required></div>
+<div><label data-i18n="common.employee">Employee</label><select name="employee_id"></select></div><div><button class="btn" data-i18n="common.show">Show</button></div></form>
+<div class="card flush"><div class="tbl"><table><thead><tr><th data-i18n="attempts.col.when">Date / time<th data-i18n="common.employee">Employee<th data-i18n="attempts.col.site">Site<th data-i18n="attempts.col.kind">Type<th data-i18n="attempts.col.reason">Reason<th class="num" data-i18n="attempts.col.distance">Distance<th></thead><tbody id="rows"></tbody></table></div></div>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,t}=P;
+const iso=d=>d.toLocaleDateString('sv');const now=new Date();
+q.from.value=iso(new Date(now-30*864e5));q.to.value=iso(now);
+const km=m=>m==null?'—':(m>=1000?(m/1000).toFixed(1)+' km':Math.round(m)+' m');
+const TONE={too_far:'bad',outside_zone:'bad',bad_location:'bad',low_accuracy:'warn',no_open_shift:'',already_in:'',not_assigned:'warn'};
+async function run(){const p=new URLSearchParams({from:q.from.value,to:q.to.value});if(q.employee_id.value)p.set('employee_id',q.employee_id.value);
+ const d=await api('GET','/api/attempts?'+p);
+ rows.replaceChildren(...(d.length?d.map(x=>h('tr',{},h('td',{},x.local_time),h('td',{},h('b',{},x.employee)),h('td',{},x.site||'—'),
+  h('td',{},h('span',{class:'badge '+(x.kind==='in'?'ok':'')},t('kind.'+x.kind))),
+  h('td',{},h('span',{class:'badge '+(TONE[x.reason]||'')},x.reason_label),x.accuracy_m>100?h('span',{class:'badge warn'},'GPS ±'+Math.round(x.accuracy_m)+' m'):null),
+  h('td',{class:'num'},km(x.distance_m)),
+  h('td',{class:'num'},x.site_lat!=null&&!(x.lat===0&&x.lon===0)?h('a',{class:'badge brand',target:'_blank',rel:'noopener',href:'https://www.google.com/maps/dir/?api=1&origin='+x.site_lat+','+x.site_lon+'&destination='+x.lat+','+x.lon},t('attempts.map')):null))):
+  [h('tr',{},h('td',{colspan:7,class:'empty'},t('attempts.empty')))]))}
+q.onsubmit=e=>{e.preventDefault();run()};
+(async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);
+ q.employee_id.add(new Option(t('common.all_employees'),''));for(const e of await api('GET','/api/employees'))q.employee_id.add(new Option(e.name,e.id));run()})();
+</script></body></html>

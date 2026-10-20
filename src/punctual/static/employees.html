@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="employees.title">Punctual · Employees</title>
+<body><main><h1 data-i18n="employees.heading">Employees</h1><p class="sub" data-i18n="employees.sub">Accounts, daily norm and the sites where they can clock in.</p>
+<div class="card"><h2 data-i18n="employees.reglink">Registration link</h2><p class="sub" style="margin:0 0 1rem" data-i18n="employees.reglink_sub">One link for all employees, valid for 6 hours. Accounts created through it stay inactive until you activate them and assign their sites. A new link invalidates the old one.</p>
+<div class="row"><button class="btn" id="lk" data-i18n="employees.gen_link">Generate link</button><input id="lkv" readonly hidden style="flex:1;min-width:16rem"><button class="btn ghost" id="lkc" hidden data-i18n="common.copy">Copy</button></div></div>
+<div class="card flush"><div class="tbl"><table><thead><tr><th data-i18n="common.name">Name<th data-i18n="common.email">Email<th data-i18n="employees.role">Role<th class="num" data-i18n="employees.norm">Norm<th data-i18n="nav.sites">Sites<th></thead><tbody id="rows"></tbody></table></div></div>
+<form id="f" class="card"><h2 id="ft" data-i18n="employees.add">Add employee</h2><input type="hidden" name="id">
+<div class="form"><div><label data-i18n="common.name">Name</label><input name="name" required></div><div><label data-i18n="common.email">Email</label><input name="email" type="email" required></div>
+<div><label id="pl" data-i18n="employees.pw_new">Password (min. 12 characters, uppercase letter, digit, special character)</label><input name="password" type="password" minlength="12" autocomplete="new-password" required></div>
+<div><label data-i18n="employees.role">Role</label><select name="role"><option value="employee" data-i18n="employees.role.employee">Employee</option><option value="admin" data-i18n="employees.role.admin">Administrator</option></select></div>
+<div><label data-i18n="employees.daily_norm">Daily norm</label><select name="norma_h"><option value="8">8 h</option><option value="6">6 h</option><option value="4">4 h</option><option value="2">2 h</option></select></div></div>
+<div style="margin-top:1rem"><label data-i18n="employees.allowed_sites">Allowed sites</label><div id="sites" class="row"></div></div>
+<div class="row" style="margin-top:1rem"><label class="chk"><input type="checkbox" name="active" checked> <span data-i18n="employees.active">Active account</span></label><button class="btn" data-i18n="common.save">Save</button><button type="button" class="btn ghost" id="cancel" data-i18n="common.cancel">Cancel</button></div></form>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,t}=P;let SITES=[];
+const drawSites=(sel=[])=>sites.replaceChildren(...SITES.map(s=>h('label',{class:'chk'},h('input',{type:'checkbox',value:s.id,checked:sel.includes(s.id)}),s.name)));
+async function load(){SITES=await api('GET','/api/sites');drawSites();const es=await api('GET','/api/employees');
+ rows.replaceChildren(...es.map(x=>h('tr',{class:x.active?'':'void'},h('td',{},h('b',{},x.name),x.pending?h('span',{class:'badge warn'},t('employees.pending')):null),h('td',{},x.email),
+  h('td',{},h('span',{class:'badge '+(x.role==='admin'?'brand':'')},t('employees.badge.'+x.role))),h('td',{class:'num'},x.norma_h+' h'),
+  h('td',{},x.site_ids.map(i=>h('span',{class:'badge'},(SITES.find(s=>s.id===i)||{}).name))),
+  h('td',{class:'num'},h('button',{class:'btn ghost sm',onclick:()=>{f.id.value=x.id;f.name.value=x.name;f.email.value=x.email;f.email.disabled=true;f.role.value=x.role;f.norma_h.value=x.norma_h;
+   f.active.checked=x.active;f.password.value='';f.password.required=false;pl.textContent=t('employees.pw_reset');drawSites(x.site_ids);ft.textContent=t('employees.edit');f.scrollIntoView({behavior:'smooth'})}},t('common.edit'))))))}
+lk.onclick=async()=>{const r=await api('POST','/api/registration-link');lkv.value=location.origin+r.path;lkv.hidden=lkc.hidden=false;P.toast(t('employees.link_generated'))};
+lkc.onclick=async()=>{lkv.select();await navigator.clipboard.writeText(lkv.value);P.toast(t('common.copied'))};
+const reset=()=>{f.reset();f.id.value='';f.email.disabled=false;f.password.required=true;pl.textContent=t('employees.pw_new');drawSites();ft.textContent=t('employees.add')};cancel.onclick=reset;
+f.onsubmit=async e=>{e.preventDefault();const id=f.id.value;const site_ids=[...sites.querySelectorAll('input:checked')].map(c=>+c.value);
+ const b={name:f.name.value,role:f.role.value,norma_h:+f.norma_h.value,active:f.active.checked,site_ids};if(f.password.value)b.password=f.password.value;
+ if(id)await api('PUT','/api/employees/'+id,b);else{b.email=f.email.value;await api('POST','/api/employees',b)}
+ P.toast(t('common.saved'));reset();load()};
+(async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);load()})();
+</script></body></html>

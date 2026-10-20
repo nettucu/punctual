@@ -1,0 +1,108 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="reports.title">Punctual · Reports</title>
+<style>
+.seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:.2rem}
+.seg button{border:0;background:transparent;font:inherit;font-weight:700;padding:.4rem 1rem;border-radius:999px;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--brand-strong);box-shadow:var(--shadow)}
+.bar-top{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.nav{display:flex;align-items:center;gap:.5rem}.nav b{min-width:9rem;text-align:center;text-transform:capitalize}
+body.admin main>*{max-width:none}
+.gridwrap{overflow:auto;max-height:max(24rem,calc(100vh - 17rem))}
+table.g{border-collapse:separate;border-spacing:0;font-size:.85rem;font-variant-numeric:tabular-nums}
+table.g th,table.g td{padding:.3rem .45rem;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;white-space:nowrap;background:var(--surface)}
+table.g thead th{position:sticky;top:0;z-index:2;background:var(--surface-2);text-transform:none;letter-spacing:0;font-size:.78rem;color:var(--text)}
+table.g th small{display:block;color:var(--muted);font-weight:500}
+table.g .nm{position:sticky;left:0;z-index:1;text-align:left;min-width:11rem;background:var(--surface);box-shadow:1px 0 0 var(--line)}
+table.g thead .nm{z-index:3;background:var(--surface-2)}
+table.g .we{background:var(--surface-2)}table.g .today{outline:2px solid var(--brand);outline-offset:-2px}
+table.g .tot{background:var(--surface-2);font-weight:800}
+table.g tr.bal td{font-size:.72rem;color:var(--muted);border-bottom:3px solid var(--line);padding:.1rem .45rem}
+table.g tr.bal .nm{font-style:italic}
+table.g td.c{cursor:pointer;min-width:2.6rem}table.g td.c small{display:block;font-weight:500;font-size:.68rem;opacity:.85;white-space:nowrap}table.g td.c:hover{filter:brightness(.95)}
+.c.ok{background:var(--ok-bg)!important;color:var(--ok);font-weight:700}.c.low{background:var(--warn-bg)!important;color:var(--warn);font-weight:700}
+.c.pin{box-shadow:inset 0 0 0 2px var(--bad)}.c.pin::after{content:'📍';position:absolute;top:0;right:1px;font-size:.6rem}table.g td.c{position:relative}.c.ot{background:var(--info-bg)!important;color:var(--brand-strong);font-weight:800}.c.q{background:var(--bad-bg)!important;color:var(--bad);font-weight:800}
+.c.hol{background:var(--info-bg)!important;color:var(--muted);font-weight:700}.c.lv{background:var(--ok-bg)!important;color:var(--ok);font-weight:800}table.g th.hol{background:var(--info-bg);color:var(--brand-strong)}
+.neg{color:var(--bad)}.pos{color:var(--ok)}
+.legend{display:flex;gap:.5rem;flex-wrap:wrap;margin:.75rem 0;font-size:.8rem}
+dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--text);padding:1.25rem;max-width:24rem;width:92vw;box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+</style>
+<body><main>
+<div class="bar-top"><div><h1 data-i18n="nav.reports">Reports</h1><p class="sub" style="margin:0" data-i18n="reports.sub">Hours worked per employee, against the norm.</p></div>
+<div class="seg" id="seg"><button data-v="week" data-i18n="reports.week">Week</button><button data-v="month" class="on" data-i18n="reports.month">Month</button><button data-v="list" data-i18n="reports.list">List</button></div></div>
+<div class="card"><div class="bar-top" style="margin:0"><div class="nav"><button class="btn ghost sm" id="prev">‹</button><b id="lbl"></b><button class="btn ghost sm" id="next">›</button><button class="btn ghost sm" id="now" data-i18n="reports.today">Today</button></div>
+<div class="row"><label class="chk" style="margin:0"><input type="checkbox" id="tm"> <span data-i18n="reports.times">In/out times</span></label><input id="q" data-i18n-ph="reports.search" placeholder="Search employee…" style="width:14rem"><a class="btn ghost" id="csv" href="#"><span id="dl"></span><span data-i18n="common.export_csv">Export CSV</span></a></div></div>
+<div class="legend"><span class="badge ok" data-i18n="reports.lg.ok">norm met</span><span class="badge warn" data-i18n="reports.lg.low">under norm</span><span class="badge brand" data-i18n="reports.lg.ot">overtime</span><span class="badge bad" data-i18n="reports.lg.q">? missing / open shift</span><span class="badge bad" data-i18n="anomaly.location">📍 location to review</span><span class="badge ok" id="lglv"></span><span class="badge brand" id="lghol"></span></div>
+<div class="gridwrap" id="wrap"></div></div>
+<dialog id="dlg"></dialog>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,t}=P;
+const LVK=['co','cm','zl'],SL=t('report.code.holiday');
+const LVN=Object.fromEntries(LVK.map(k=>[t('leave.code.'+k),t('leave.code.'+k)+' · '+t('reports.lv.'+k)]));
+lglv.textContent=LVK.map(k=>t('leave.code.'+k)+' '+t('reports.lv.'+k)).join(' · ');lghol.textContent=SL+' '+t('reports.lv.holiday');
+const TONE={open:'warn','missing out':'bad','orphan out':'bad','long shift':'warn'},ALAB=a=>t('anomaly.'+a.replace(' ','_'));
+const DAY=864e5,iso=d=>d.toLocaleDateString('sv'),parse=s=>new Date(s+'T12:00:00');
+const WD=t('reports.weekdays').split(',');
+let view='month',cur=new Date(),EMPS=[],DATA={},LV={},HOL={},LVL=[];
+const hm=x=>{if(x==null)return'';const neg=x<0,m=Math.round(Math.abs(x)*60);return(neg?'−':'')+Math.floor(m/60)+':'+String(m%60).padStart(2,'0')};
+function range(){const d=new Date(cur);
+ if(view==='week'){const k=(d.getDay()+6)%7;const a=new Date(d-k*DAY);return[a,new Date(+a+6*DAY)]}
+ if(view==='month')return[new Date(d.getFullYear(),d.getMonth(),1),new Date(d.getFullYear(),d.getMonth()+1,0)];
+ return[new Date(d.getFullYear(),d.getMonth(),1),new Date(d.getFullYear(),d.getMonth()+1,0)]}
+const days=(a,b)=>{const o=[];for(let d=new Date(a);d<=b;d=new Date(+d+DAY))o.push(new Date(d));return o};
+async function load(){const[a,b]=range();const from=iso(a),to=iso(b);
+ lbl.textContent=view==='week'?a.toLocaleDateString(P.locale,{day:'numeric',month:'short'})+' – '+b.toLocaleDateString(P.locale,{day:'numeric',month:'short',year:'numeric'}):a.toLocaleDateString(P.locale,{month:'long',year:'numeric'});
+ csv.href='/api/reports/hours.csv?from='+from+'&to='+to;
+ const r=await api('GET','/api/reports/hours?from='+from+'&to='+to);DATA={};r.days.forEach(x=>(DATA[x.employee_id]??={})[x.day]=x);HOL=r.holidays;LVL=r.leave;LV={};r.leave.forEach(x=>(LV[x.employee_id]??={})[x.day]=x.code);
+ draw(a,b)}
+function draw(a,b){const ds=days(a,b),today=iso(new Date()),f=q.value.trim().toLowerCase();
+ if(view==='list')return list();
+ const split=view==='month'?ds.findIndex(d=>d.getDate()===16):-1;
+ const emps=EMPS.filter(e=>e.active&&(e.role==='employee'||DATA[e.id])&&e.name.toLowerCase().includes(f));
+ const head=h('tr',{},h('th',{class:'nm'},t('common.employee')),ds.map(d=>{const we=[0,6].includes(d.getDay());return[
+   h('th',{class:(we?'we ':'')+(HOL[iso(d)]?'hol ':'')+(iso(d)===today?'today':''),title:HOL[iso(d)]||''},d.getDate(),h('small',{},WD[d.getDay()])),
+   view==='month'&&d.getDate()===15?h('th',{class:'tot'},'1–15'):null]}),
+  view==='month'?h('th',{class:'tot'},'16–'+b.getDate()):null,h('th',{class:'tot'},t('reports.total')),h('th',{class:'tot'},view==='week'?t('employees.norm'):t('reports.balance')));
+ const rows=emps.flatMap(e=>{let s1=0,s2=0,tot=0,b1=0,b2=0,bt=0,norma=0;
+  const cells=[],bcells=[];
+  ds.forEach(d=>{const k=iso(d),x=(DATA[e.id]||{})[k],hrs=x?x.hours:0,we=[0,6].includes(d.getDay());
+   const lc=(LV[e.id]||{})[k],off=we||HOL[k]||lc,exp=(!off&&k<today)?e.norma_h:0,bal=k<=today?hrs-exp:null;if(!off)norma+=e.norma_h;
+   const first=view!=='month'||d.getDate()<=15;
+   tot+=hrs;if(first)s1+=hrs;else s2+=hrs;if(bal!=null){bt+=bal;if(first)b1+=bal;else b2+=bal}
+   let cls='c',txt=hrs>0?hm(hrs):'';
+   if(x&&x.anomalies.length){cls+=' q';txt=hrs>0?hm(hrs)+'?':'?'}
+   else if(hrs>0)cls+=hrs>e.norma_h+.25?' ot':hrs>=e.norma_h-.25?' ok':' low';
+   if(hrs===0&&!x){if(lc){cls+=' lv';txt=lc}else if(HOL[k]){cls+=' hol';txt=SL}}
+   if(x&&x.location_flag)cls+=' pin';if(we)cls+=' we';if(k===today)cls+=' today';
+   const td=h('td',{class:cls,title:x?x.sites.join(', '):(HOL[k]||''),onclick:()=>detail(e,k,x)},txt,tm.checked&&x?h('small',{},x.first_in+'–'+(x.last_out||'?')):null,x&&(lc||HOL[k])?h('small',{},lc||SL):null);
+   const bt2=h('td',{class:we?'we':''},bal!=null&&(hrs>0||exp>0)?h('span',{class:bal<0?'neg':'pos'},hm(bal)):'');
+   cells.push(td);bcells.push(bt2);
+   if(view==='month'&&d.getDate()===15){cells.push(h('td',{class:'tot'},hm(s1)));bcells.push(h('td',{class:'tot'},h('span',{class:b1<0?'neg':'pos'},hm(b1))))}});
+  const wk=view==='week';
+  return[h('tr',{},h('td',{class:'nm'},h('b',{},e.name),h('small',{style:'color:var(--muted)'},' · '+e.norma_h+'h')),cells,
+    view==='month'?h('td',{class:'tot'},hm(s2)):null,h('td',{class:'tot'},hm(tot)),h('td',{class:'tot'},wk?hm(norma):h('span',{class:bt<0?'neg':'pos'},hm(bt)))),
+   h('tr',{class:'bal'},h('td',{class:'nm'},t('reports.balance_row')),bcells,view==='month'?h('td',{class:'tot'},h('span',{class:b2<0?'neg':'pos'},hm(b2))):null,
+    h('td',{class:'tot'},h('span',{class:bt<0?'neg':'pos'},hm(bt))),h('td',{class:'tot'},wk?h('span',{class:bt<0?'neg':'pos'},hm(bt)):''))]});
+ wrap.replaceChildren(rows.length?h('table',{class:'g'},h('thead',{},head),h('tbody',{},rows)):h('p',{class:'empty'},t('reports.no_employees')))}
+function list(){const f=q.value.trim().toLowerCase();const lrows=LVL.filter(x=>x.employee.toLowerCase().includes(f)).map(x=>({employee:x.employee,day:x.day,leave:x.code}));const rows=Object.values(DATA).flatMap(o=>Object.values(o)).filter(x=>x.employee.toLowerCase().includes(f)).concat(lrows).sort((p,r)=>p.employee.localeCompare(r.employee)||p.day.localeCompare(r.day));
+
+ wrap.replaceChildren(h('table',{},h('thead',{},h('tr',{},['common.employee','reports.col.date','punch.arrival','punch.departure','reports.col.hours','employees.norm','reports.col.ot','dashboard.col.notes'].map((k,i)=>h('th',{class:i>3&&i<7?'num':''},t(k))))),
+  h('tbody',{},rows.length?rows.map(x=>x.leave?h('tr',{},h('td',{},h('b',{},x.employee)),h('td',{},x.day),h('td',{colspan:5},'—'),h('td',{},h('span',{class:'badge ok'},LVN[x.leave]))):h('tr',{},h('td',{},h('b',{},x.employee)),h('td',{},x.day),h('td',{},x.first_in),h('td',{},x.last_out||'—'),h('td',{class:'num'},h('b',{},x.hours.toFixed(2))),
+   h('td',{class:'num'},x.norma_h+' h'),h('td',{class:'num'},x.overtime_h>0?h('span',{class:'badge brand'},'+'+x.overtime_h.toFixed(2)):'—'),
+   h('td',{},x.anomalies.map(a=>h('span',{class:'badge '+TONE[a]},ALAB(a))),x.manual?h('span',{class:'badge warn'},t('reports.manual')):null,x.location_flag?h('span',{class:'badge bad'},t('reports.loc')):null,x.reviewed?h('span',{class:'badge ok'},t('reports.reviewed')):null,HOL[x.day]?h('span',{class:'badge brand'},SL+' · '+HOL[x.day]):null))):
+   [h('tr',{},h('td',{colspan:8,class:'empty'},t('reports.empty')))])))}
+function detail(e,k,x){const lc=(LV[e.id]||{})[k];
+ dlg.replaceChildren(h('h2',{},e.name),h('p',{class:'sub'},parse(k).toLocaleDateString(P.locale,{weekday:'long',day:'numeric',month:'long'})),
+  (lc||HOL[k])?h('p',{},lc?h('span',{class:'badge ok'},LVN[lc]):null,HOL[k]?h('span',{class:'badge brand'},SL+' · '+HOL[k]):null):null,
+  x?h('div',{},h('p',{},h('b',{},hm(x.hours)+' h'),t('reports.of_norm',{h:e.norma_h})),h('p',{},x.first_in+' → '+(x.last_out||'—')),h('p',{},x.sites.join(', ')),
+   x.anomalies.map(a=>h('span',{class:'badge bad'},ALAB(a))),x.manual?h('span',{class:'badge warn'},t('reports.manual')):null,x.location_flag?h('span',{class:'badge bad'},t('anomaly.location')):null,x.reviewed?h('span',{class:'badge ok'},t('reports.reviewed_admin')):null):h('p',{class:'hint'},t('reports.no_record')),
+  h('div',{class:'row',style:'margin-top:1rem'},h('a',{class:'btn',href:'/admin/corrections?employee_id='+e.id+'&date='+k},t('reports.fix_add')),h('button',{class:'btn ghost',onclick:()=>dlg.close()},t('common.close'))));dlg.showModal()}
+dlg.onclick=e=>{if(e.target===dlg)dlg.close()};
+dl.replaceWith(P.icon('download',16));
+tm.onchange=()=>{const[a,b]=range();draw(a,b)};
+seg.onclick=e=>{const v=e.target.dataset.v;if(!v)return;view=v;if(v!=='list')tm.checked=v==='week';seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));load()};
+const step=n=>{if(view==='week')cur=new Date(+cur+7*n*DAY);else cur=new Date(cur.getFullYear(),cur.getMonth()+n,1);load()};
+prev.onclick=()=>step(-1);next.onclick=()=>step(1);now.onclick=()=>{cur=new Date();load()};q.oninput=()=>{const[a,b]=range();draw(a,b)};
+(async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);
+ EMPS=await api('GET','/api/employees');load()})();
+</script></body></html>

@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="leave.title">Punctual · Leave</title>
+<body><main><h1 data-i18n="leave.heading">Leave and days off</h1><p class="sub" data-i18n="leave.sub">Requests for vacation, medical leave and free days. Working days covered by an approved request are marked in the reports; weekends and public holidays are not deducted from leave.</p>
+<div class="card"><label data-i18n="common.status">Status</label><select id="st"><option value="pending" data-i18n="status.pending">Pending</option><option value="approved" data-i18n="status.approved">Approved</option><option value="rejected" data-i18n="status.rejected">Rejected</option></select></div>
+<div class="card flush"><div class="tbl"><table><thead><tr><th data-i18n="common.employee">Employee<th data-i18n="leave.col.type">Type<th data-i18n="leave.col.period">Period<th data-i18n="leave.col.days">Working days<th data-i18n="leave.col.note">Explanation<th></thead><tbody id="rows"></tbody></table></div></div>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,t}=P;
+const KIND=k=>t('leave.kind.'+k)+' ('+t('leave.code.'+k)+')';
+async function run(){const r=await api('GET','/api/leave?status='+st.value);
+ rows.replaceChildren(...(r.length?r.map(x=>h('tr',{},h('td',{},h('b',{},x.employee)),h('td',{},h('span',{class:'badge '+(x.kind==='co'?'brand':x.kind==='cm'?'bad':'warn')},KIND(x.kind))),
+  h('td',{},x.date_from===x.date_to?x.date_from:x.date_from+' → '+x.date_to),h('td',{class:'num'},x.days),
+  h('td',{},x.note,x.decision_note?h('div',{class:'hint'},t('common.response',{text:x.decision_note})):null),
+  h('td',{class:'num'},x.status==='pending'?[h('button',{class:'btn sm',style:'margin-right:.3rem',onclick:async()=>{await api('POST','/api/leave/'+x.id+'/approve',{});P.toast(t('leave.approved'));run()}},t('common.approve')),
+   h('button',{class:'btn danger sm',onclick:async()=>{const reason=prompt(t('common.reject_prompt'));
+    if(reason&&reason.length>=3){await api('POST','/api/leave/'+x.id+'/reject',{reason});P.toast(t('leave.rejected'));run()}}},t('common.reject'))]:null))):
+  [h('tr',{},h('td',{colspan:6,class:'empty'},t('leave.empty')))]))}
+st.onchange=run;
+(async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);run()})();
+</script></body></html>

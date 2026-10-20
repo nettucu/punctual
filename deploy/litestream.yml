@@ -1,0 +1,8 @@
+snapshot:
+  interval: 6h
+  retention: 336h
+dbs:
+  - path: ${PUNCTUAL_DB_PATH}
+    replica:
+      url: ${LITESTREAM_REPLICA_URL}
+      sync-interval: 1s

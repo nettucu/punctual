@@ -1,0 +1,19 @@
+# Upload to Cloud Build only what the Dockerfile COPYs. Everything else stays local.
+.git
+.gitignore
+.venv
+.python-version
+.pytest_cache
+.ruff_cache
+__pycache__
+**/__pycache__
+tests
+*.db
+*.db-*
+.env
+secrets
+deploy/cloudrun
+deploy/verify-backup.sh
+deploy/README.md
+deploy/docker-compose.yml
+deploy/Caddyfile

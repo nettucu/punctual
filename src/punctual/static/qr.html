@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="qr.title">Punctual · QR codes</title>
+<style>@media print{.top,.noprint{display:none!important}body{background:#fff}.poster{break-inside:avoid;box-shadow:none;border:2px solid #000}}
+.posters{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr))}.poster{text-align:center;margin:0}
+.poster img.qr{width:100%;max-width:18rem;margin:.75rem auto;display:block;background:#fff;border-radius:12px}.poster h2{display:block;font-size:1.6rem;margin:0}.poster .logo{height:32px;margin-bottom:.5rem}</style>
+<body><main><div class="row noprint" style="justify-content:space-between"><div><h1 data-i18n="qr.heading">QR codes</h1><p class="sub" data-i18n="qr.sub">Print and stick one code at the entrance of each site. The app picks Arrival or Departure from the employee's state.</p></div>
+<button class="btn" id="pb" onclick="print()"><span data-i18n="qr.print">Print</span></button></div><div id="out"></div></main>
+<script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,t}=P;document.getElementById('pb').prepend(P.icon('printer',16));
+(async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);
+ const sites=await api('GET','/api/sites');
+ document.getElementById('out').replaceChildren(...sites.map(s=>h('section',{},h('div',{class:'row noprint',style:'margin:1rem 0'},h('h2',{style:'margin:0'},s.name),
+  h('button',{class:'btn ghost sm',onclick:async()=>{if(confirm(t('qr.confirm'))){await api('POST','/api/sites/'+s.id+'/regenerate-key');location.reload()}}},t('qr.regen'))),
+  h('div',{class:'posters'},h('div',{class:'card poster'},h('img',{class:'logo',src:'/brand/logo',alt:''}),h('h2',{},t('qr.poster')),
+   h('img',{class:'qr',src:'/api/sites/'+s.id+'/qr.svg?k='+s.qr_key,alt:t('qr.alt')}),h('p',{class:'sub',style:'margin:0'},t('qr.poster_sub')),h('p',{class:'sub',style:'margin:0'},s.name))))))})();
+</script></body></html>

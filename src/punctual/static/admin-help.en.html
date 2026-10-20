@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title>Punctual · Administrator manual</title>
+<body><main><h1>Administrator manual</h1><p class="sub">Accounts, daily checks, corrections and reports.</p>
+<div class="card"><h2>1. New accounts</h2><ol>
+<li>In <b>Employees</b> tap <b>Generate link</b>, copy the link and send it to your employees (chat or email). One link works for everyone, for 6 hours. A new link invalidates the old one.</li>
+<li>The employee creates their own account. It shows up in the list as <b>inactive</b> (dimmed row).</li>
+<li>Tap <b>Edit</b>, tick <b>Active account</b>, pick the daily norm, the role and the <b>allowed sites</b>, then <b>Save</b>. Without assigned sites the employee cannot clock in.</li>
+<li>You can also create an account directly, with a password you set (the <b>Add employee</b> form).</li></ol>
+<p class="sub" style="margin:0">Password rule: at least 12 characters, one uppercase letter, one digit and one special character. The email cannot be changed after creation.</p></div>
+<div class="card"><h2>2. Passwords, lockouts, deactivation</h2><ul>
+<li><b>Password reset</b>: Edit, fill in <b>New password</b>. All the employee's sessions are closed and the account is unlocked.</li>
+<li><b>Deactivation</b>: untick <b>Active account</b>. The history stays; the employee can no longer sign in.</li>
+<li>You cannot deactivate or demote yourself.</li>
+<li>The first administrator is created from the command line: <code>punctual-admin create-admin --name "Name" --email "email"</code>.</li></ul></div>
+<div class="card"><h2>3. Sites and QR codes</h2><p>In <b>Sites</b> you define each workplace (position and allowed radius). In <b>QR codes</b> you print each site's code and display it at the entrance. If a code reached someone it should not have, regenerate the site's key: the old code stops working.</p></div>
+<div class="card"><h2>4. Daily check</h2><ul>
+<li><b>Dashboard</b>: who is present, unclosed shifts and the days to review from the last 14 days. Mark a day as reviewed once you have checked it.</li>
+<li><b>Rejected attempts</b>: punches that were refused (no location, shift already open or closed, site not assigned), kept for 90 days. Punches made outside the zone or with weak GPS are not refused: they are recorded and appear under "To review" in the Dashboard, where you approve them.</li></ul></div>
+<div class="card"><h2>5. Corrections and requests</h2><ul>
+<li><b>Corrections</b>: approve or reject employee requests, add a missing punch or edit a punch. A reason is required.</li>
+<li>A punch is never deleted: it is <b>voided</b>. An edit voids the original and adds the replacement. Everything stays in <b>Change history</b>, for labour inspections.</li>
+<li><b>Leave</b>: approve or reject vacation, medical leave and free-day requests. The decision is final.</li></ul></div>
+<div class="card"><h2>6. Reports</h2><p>In <b>Reports</b> pick the period and the employee and export CSV. Public holidays, vacation, medical leave and free days are marked; weekends and holidays expect no hours.</p></div>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>(async()=>{const me=await P.api('GET','/auth/me');if(me.role!=='admin'){location.href='/help';return}P.header(me,true)})();</script></body></html>

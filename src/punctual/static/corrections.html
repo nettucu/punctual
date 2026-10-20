@@ -1,0 +1,70 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="corrections.title">Punctual · Corrections</title>
+<body><main><h1 data-i18n="corrections.heading">Punch corrections</h1><p class="sub"><span data-i18n="corrections.sub">You can add, edit or void any punch, with a reason. The original is never lost: an edit voids the old row and adds a new one linked to it. Everything shows up in</span> <a href="/admin/history" data-i18n="nav.history">Change history</a>.</p>
+<div class="card flush" id="reqcard" style="display:none"><div style="padding:1.25rem 1.25rem 0"><h2><span data-i18n="corrections.requests">Employee requests</span> <span class="badge brand" id="reqn"></span></h2></div>
+<div class="tbl"><table><thead><tr><th data-i18n="common.employee">Employee<th data-i18n="corrections.col.asks">Asks for<th data-i18n="leave.col.note">Explanation<th data-i18n="corrections.col.that_day">That day<th></thead><tbody id="reqs"></tbody></table></div></div>
+<form id="q" class="card form"><div><label data-i18n="common.from">From</label><input type="date" name="from" required></div><div><label data-i18n="common.to">To</label><input type="date" name="to" required></div>
+<div><label data-i18n="common.employee">Employee</label><select name="employee_id"></select></div><div><button class="btn" data-i18n="common.show">Show</button></div></form>
+<div class="card flush"><div class="tbl"><table><thead><tr><th data-i18n="common.employee">Employee<th data-i18n="attempts.col.when">Date / time<th data-i18n="attempts.col.kind">Type<th data-i18n="dashboard.col.site">Site<th data-i18n="corrections.col.source">Source<th data-i18n="corrections.col.note">Note<th></thead><tbody id="rows"></tbody></table></div></div>
+<form id="a" class="card"><h2 data-i18n="corrections.add">Add a missing punch</h2><p class="hint warn" id="fixhint" hidden></p><div class="form">
+<div><label data-i18n="common.employee">Employee</label><select name="employee_id" required></select></div><div><label data-i18n="dashboard.col.site">Site</label><select name="site_id" required></select></div>
+<div><label data-i18n="attempts.col.kind">Type</label><select name="kind"><option value="in" data-i18n="punch.arrival">Arrival</option><option value="out" data-i18n="punch.departure">Departure</option></select></div>
+<div><label data-i18n="corrections.datetime">Date and time</label><input type="datetime-local" name="local_time" required></div>
+<div style="grid-column:1/-1"><label data-i18n="corrections.reason_req">Reason (required)</label><input name="note" minlength="3" required></div></div>
+<div class="row" style="margin-top:1rem"><button class="btn" data-i18n="corrections.add_btn">Add</button></div></form>
+<dialog id="ed"><h2 data-i18n="corrections.edit">Edit punch</h2><p class="hint" id="edwho"></p>
+<form id="ef" class="form" style="grid-template-columns:1fr">
+<div><label data-i18n="attempts.col.kind">Type</label><select name="kind"><option value="in" data-i18n="punch.arrival">Arrival</option><option value="out" data-i18n="punch.departure">Departure</option></select></div>
+<div><label data-i18n="dashboard.col.site">Site</label><select name="site_id" required></select></div>
+<div><label data-i18n="corrections.datetime">Date and time</label><input type="datetime-local" name="local_time" required></div>
+<div><label data-i18n="corrections.edit_reason">Reason for the change (required)</label><input name="reason" minlength="3" required data-i18n-ph="corrections.edit_ph" placeholder="e.g. the employee left at 17:00, confirmed by phone"></div>
+<div class="row"><button class="btn" data-i18n="common.save">Save</button><button type="button" class="btn ghost" id="edcancel" data-i18n="corrections.discard">Discard</button></div></form></dialog>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,t}=P;
+const iso=d=>d.toLocaleDateString('sv');const now=new Date();
+const qp=new URLSearchParams(location.search),qd=qp.get('date');let SITES=[],EDIT=null;
+if(qd){q.from.value=qd;q.to.value=qd;a.local_time.value=qd+'T08:00'}else{q.from.value=iso(new Date(now-7*864e5));q.to.value=iso(now)}
+async function run(){const p=new URLSearchParams({from:q.from.value,to:q.to.value});if(q.employee_id.value)p.set('employee_id',q.employee_id.value);
+ const d=await api('GET','/api/corrections/punches?'+p);
+ rows.replaceChildren(...(d.length?d.map(x=>h('tr',{class:(x.voided?'void':x.source==='admin'?'adm':'')+(String(x.id)===qp.get('punch')?' hl':'')},h('td',{},h('b',{},x.employee)),h('td',{},x.local_time),
+  h('td',{},h('span',{class:'badge '+(x.kind==='in'?'ok':'')},t('kind.'+x.kind))),h('td',{},x.site),
+  h('td',{},x.source==='admin'?h('span',{class:'badge warn'},'admin · '+x.created_by):h('span',{class:'badge'},t('corrections.phone'))),
+  h('td',{},(x.note||'')+(x.voided?t('corrections.voided',{reason:x.void_reason}):''),
+   x.was?h('a',{class:'badge warn',href:'/admin/history?'+new URLSearchParams({date:x.local_time.slice(0,10),employee_id:x.employee_id}),title:t('corrections.see_history')},t('corrections.was',{was:x.was})):null,
+   x.flagged?h('span',{class:'badge bad'},(x.distance_m>0&&x.accuracy_m<=100?t('corrections.outside'):'📍 ')+(x.distance_m!=null?(x.distance_m>=1000?(x.distance_m/1000).toFixed(1)+' km':Math.round(x.distance_m)+' m'):'')+(x.accuracy_m>100?t('corrections.weak_gps',{m:Math.round(x.accuracy_m)}):'')):null,
+   x.approved?h('span',{class:'badge ok'},t('corrections.loc_approved',{reason:x.approve_reason})):null,
+   (x.flagged||x.approved)&&x.lat!=null?h('a',{class:'badge brand',target:'_blank',rel:'noopener',href:'https://www.google.com/maps/dir/?api=1&origin='+x.site_lat+','+x.site_lon+'&destination='+x.lat+','+x.lon},t('attempts.map')):null),
+  h('td',{class:'num'},x.flagged&&!x.voided?h('button',{class:'btn ghost sm',style:'margin-right:.3rem',onclick:async()=>{const reason=prompt(t('corrections.approve_prompt'));
+   if(reason&&reason.length>=3){await api('POST','/api/corrections/punches/'+x.id+'/approve-location',{reason});P.toast(t('corrections.loc_approved_toast'));run()}}},t('corrections.approve_loc')):null,x.voided?null:h('button',{class:'btn ghost sm',style:'margin-right:.3rem',onclick:()=>openEdit(x)},t('common.edit')),x.voided?null:h('button',{class:'btn danger sm',onclick:async()=>{const reason=prompt(t('corrections.void_prompt'));
+   if(reason&&reason.length>=3){await api('POST','/api/corrections/punches/'+x.id+'/void',{reason});P.toast(t('corrections.voided_toast'));run()}}},t('corrections.void'))))):
+  [h('tr',{},h('td',{colspan:7,class:'empty'},t('corrections.empty')))]))}
+async function loadReqs(){const r=await api('GET','/api/requests');reqcard.style.display=r.length?'':'none';reqn.textContent=r.length;
+ reqs.replaceChildren(...r.map(x=>h('tr',{},h('td',{},h('b',{},x.employee)),
+  h('td',{},h('span',{class:'badge '+(x.kind==='in'?'ok':'')},t('kind.'+x.kind)),' '+x.local_time,h('div',{class:'hint'},x.site)),
+  h('td',{},x.note),h('td',{},x.day_punches.length?x.day_punches.map(p=>h('div',{},p)):h('span',{class:'hint'},t('corrections.no_punches'))),
+  h('td',{class:'num'},h('button',{class:'btn sm',style:'margin-right:.3rem',onclick:async()=>{const tm=prompt(t('corrections.time_prompt'),x.local_time);
+    if(tm===null)return;const b={};if(tm.trim()!==x.local_time){b.local_time=tm.trim().replace(' ','T');b.reason=prompt(t('corrections.why_adjusted'))||''}
+    await api('POST','/api/requests/'+x.id+'/approve',b);P.toast(t('corrections.req_approved'));loadReqs();run()}},t('common.approve')),
+   h('button',{class:'btn danger sm',onclick:async()=>{const reason=prompt(t('common.reject_prompt'));
+    if(reason&&reason.length>=3){await api('POST','/api/requests/'+x.id+'/reject',{reason});P.toast(t('leave.rejected'));loadReqs()}}},t('common.reject'))))))}
+function openEdit(x){EDIT=x;ef.reset();ef.site_id.replaceChildren(...SITES.map(s=>new Option(s.name,s.id)));
+ ef.kind.value=x.kind;ef.site_id.value=x.site_id;ef.local_time.value=x.local_time.replace(' ','T');
+ edwho.textContent=x.employee+' · '+t('corrections.now')+' '+t('kind.'+x.kind)+' '+x.local_time+' · '+x.site;ed.showModal()}
+edcancel.onclick=()=>ed.close();
+ef.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(ef));b.site_id=+b.site_id;
+ try{await api('POST','/api/corrections/punches/'+EDIT.id+'/edit',b)}catch(err){return}
+ ed.close();P.toast(t('corrections.edited_toast'));run()};
+q.onsubmit=e=>{e.preventDefault();run()};
+a.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(a));b.employee_id=+b.employee_id;b.site_id=+b.site_id;
+ await api('POST','/api/corrections/punches',b);P.toast(t('corrections.added_toast'));a.note.value='';run()};
+(async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);
+ loadReqs();q.employee_id.add(new Option(t('common.all_employees'),''));
+ for(const e of await api('GET','/api/employees')){q.employee_id.add(new Option(e.name,e.id));a.employee_id.add(new Option(e.name,e.id))}
+ SITES=await api('GET','/api/sites');for(const s of SITES)a.site_id.add(new Option(s.name,s.id));
+ const pe=qp.get('employee_id');if(pe){q.employee_id.value=pe;a.employee_id.value=pe}
+ if(qp.get('site_id'))a.site_id.value=qp.get('site_id');
+ await run();
+ if(qp.get('fix')==='out'){a.kind.value='out';a.local_time.value='';a.note.placeholder=t('corrections.fix_ph');
+  fixhint.hidden=false;fixhint.textContent=t('corrections.fix_hint');
+  a.scrollIntoView({behavior:'smooth',block:'center'});a.local_time.focus()}})();
+</script></body></html>

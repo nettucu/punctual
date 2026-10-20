@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="register.title">Punctual · New account</title>
+<body class="hero"><div class="card login"><img src="/brand/logo" alt="Punctual">
+<h1 data-i18n="register.heading">Create your account</h1><p class="sub" data-i18n="register.rules">Password: at least 12 characters, with an uppercase letter, a digit and a special character.</p>
+<form id="f" class="form"><div><label for="n" data-i18n="register.name">Full name</label><input id="n" name="name" required autocomplete="name" autofocus></div>
+<div><label for="e" data-i18n="common.email">Email</label><input id="e" name="email" type="email" required autocomplete="username"></div>
+<div><label for="p" data-i18n="common.password">Password</label><input id="p" name="password" type="password" required minlength="12" autocomplete="new-password" pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{12,}" data-i18n-title="register.pw_title" title="At least 12 characters, one uppercase letter, one digit and one special character"></div>
+<div><label for="p2" data-i18n="register.repeat">Repeat password</label><input id="p2" type="password" required autocomplete="new-password"></div>
+<button class="btn" id="b" data-i18n="register.submit">Create account</button></form>
+<p id="done" class="sub" hidden data-i18n="register.done">Account created. An administrator must activate it before you can sign in.</p></div>
+<script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+f.onsubmit=async e=>{e.preventDefault();if(p.value!==p2.value){P.toast(P.t('register.mismatch'),'bad');return}
+b.disabled=true;
+const r=await fetch('/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:new URLSearchParams(location.search).get('t')||'',name:n.value,email:document.getElementById("e").value,password:p.value})});
+if(r.status===201){f.hidden=true;done.hidden=false;return}
+P.toast(r.status===422?P.t('register.weak'):await P.errorText(r),'bad');b.disabled=false}
+</script></body></html>

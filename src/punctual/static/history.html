@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="history.title">Punctual · Change history</title>
+<body><main><h1 data-i18n="history.heading">Change history</h1><p class="sub" data-i18n="history.sub">Every intervention on punches: manual additions, edits, voids, approved locations and correction requests. The period refers to the day of the affected punch. Nothing in this history can be deleted.</p>
+<form id="q" class="card form"><div><label data-i18n="common.from">From</label><input type="date" name="from" required></div><div><label data-i18n="common.to">To</label><input type="date" name="to" required></div>
+<div><label data-i18n="common.employee">Employee</label><select name="employee_id"></select></div><div class="row"><button class="btn" data-i18n="common.show">Show</button><button type="button" class="btn ghost" id="csv"></button></div></form>
+<div class="card flush"><div class="tbl"><table><thead><tr><th data-i18n="audit.csv.at">Changed at<th data-i18n="audit.csv.admin">Admin<th data-i18n="common.employee">Employee<th data-i18n="audit.csv.action">Action<th data-i18n="audit.csv.before">Before<th data-i18n="audit.csv.after">After<th data-i18n="audit.csv.reason">Reason</thead><tbody id="rows"></tbody></table></div></div>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,t}=P;
+const iso=d=>d.toLocaleDateString('sv');const now=new Date();
+const qp=new URLSearchParams(location.search);
+q.from.value=qp.get('date')||iso(new Date(now-30*864e5));q.to.value=qp.get('date')||iso(now);
+const TONE={added:'ok',edited:'warn',voided:'bad',location_approved:'brand',request_approved:'ok',request_rejected:'bad',reviewed:'brand'};
+const params=()=>{const p=new URLSearchParams({from:q.from.value,to:q.to.value});if(q.employee_id.value)p.set('employee_id',q.employee_id.value);return p};
+async function run(){const d=await api('GET','/api/audit?'+params());
+ rows.replaceChildren(...(d.length?d.map(x=>h('tr',{},h('td',{},x.at||'—'),h('td',{},x.admin),h('td',{},h('b',{},x.employee),h('div',{class:'hint'},t('history.day',{day:x.day}))),
+  h('td',{},h('span',{class:'badge '+TONE[x.action]},t('audit.action.'+x.action))),
+  h('td',{},x.before?h('span',{style:x.after?'text-decoration:line-through;opacity:.7':''},x.before):'—'),h('td',{},x.after||'—'),h('td',{},x.reason||''))):
+  [h('tr',{},h('td',{colspan:7,class:'empty'},t('history.empty')))]))}
+q.onsubmit=e=>{e.preventDefault();run()};
+csv.append(P.icon('download',16),t('common.export_csv'));csv.onclick=()=>{location.href='/api/audit/export.csv?'+params()};
+(async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);
+ q.employee_id.add(new Option(t('common.all_employees'),''));for(const e of await api('GET','/api/employees'))q.employee_id.add(new Option(e.name,e.id));
+ if(qp.get('employee_id'))q.employee_id.value=qp.get('employee_id');run()})();
+</script></body></html>

@@ -1,0 +1,33 @@
+# Self-hosted deploy: app (+ optional Litestream backup) behind Caddy, which provides HTTPS.
+# Browsers only expose GPS on HTTPS, so do not skip the proxy in production.
+# Usage (from the repo root): cp .env.example .env && edit it, then: docker compose -f deploy/docker-compose.yml --env-file .env up -d --build
+services:
+  punctual:
+    build:
+      context: ..
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      PORT: "8080"
+    volumes:
+      - data:/data
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - punctual
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PUNCTUAL_DOMAIN: ${PUNCTUAL_DOMAIN:?set PUNCTUAL_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+
+volumes:
+  data:
+  caddy_data:

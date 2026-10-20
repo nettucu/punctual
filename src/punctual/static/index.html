@@ -1,0 +1,139 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title data-i18n="index.title">Punctual</title>
+<body><main class="clock">
+<h1 id="hi" data-i18n="index.hi">Hello!</h1><p class="sub" id="date"></p><p class="hint" id="lockinfo" hidden></p>
+<p class="hint ok" id="dayinfo" hidden></p>
+<span class="chip" id="chip"><i></i><span id="chipt">…</span></span>
+<div class="card" id="forgot" hidden style="text-align:left;margin-top:1rem;background:var(--bad-bg);border-color:var(--bad)">
+<h2 style="color:var(--bad)" data-i18n="index.prev_open">The previous shift was not closed</h2>
+<p id="fgmsg" style="font-weight:700"></p><p class="hint bad" id="fgrej" hidden></p>
+<form id="ff" class="form" style="grid-template-columns:1fr">
+<div><label data-i18n="index.when_left">What time did you leave?</label><input type="datetime-local" name="local_time" required></div>
+<div><label data-i18n="index.note_req">Explanation (required)</label><textarea name="note" rows="2" minlength="3" required data-i18n-ph="index.forgot_ph" placeholder="e.g. I forgot to clock out, I left at 17:30"></textarea></div>
+<div><button class="btn" data-i18n="index.send_out">Send the departure time</button></div></form></div>
+<button class="big" id="go" disabled><span id="gol">…</span></button>
+<p><button type="button" class="btn ghost sm" id="forgotin" hidden data-i18n="index.forgot_in">I forgot to clock in on arrival</button></p>
+<div id="sitewrap"><label for="site" data-i18n="index.site">Site</label><select id="site"></select></div>
+<p class="hint" id="msg"></p>
+<div class="card" style="text-align:left;margin-top:1.5rem"><h2 data-i18n="index.today">Today</h2>
+<div class="row" style="justify-content:space-between"><b id="today">0 h</b><span class="hint" id="norma"></span></div>
+<div class="bar" id="bar"><i style="width:0"></i></div><p class="hint" id="last"></p></div>
+<div class="card" style="text-align:left"><h2 data-i18n="index.mistake">Forgot or got a punch wrong?</h2>
+<p class="hint" style="margin-top:-.4rem" data-i18n="index.mistake_sub">Send a correction request. An administrator reviews it and approves or rejects it.</p>
+<button class="btn ghost" id="reqbtn"></button>
+<div id="mine" style="margin-top:1rem"></div></div>
+<div class="card" style="text-align:left"><h2 data-i18n="index.leave">Leave or a day off</h2>
+<p class="hint" style="margin-top:-.4rem" data-i18n="index.leave_sub">Request vacation, medical leave or a free day. Weekends and public holidays do not count.</p>
+<button class="btn ghost" id="lvbtn"></button>
+<div id="mylv" style="margin-top:1rem"></div></div>
+<dialog id="lvdlg"><h2 data-i18n="index.leave_req">Leave / day off request</h2>
+<form id="lf" class="form" style="grid-template-columns:1fr">
+<div><label data-i18n="attempts.col.kind">Type</label><select name="kind"><option value="co" data-i18n="index.kind.co">Vacation</option><option value="cm" data-i18n="index.kind.cm">Medical leave</option><option value="zl" data-i18n="index.kind.zl">Free day</option></select></div>
+<div><label data-i18n="common.from">From</label><input type="date" name="date_from" required></div>
+<div><label data-i18n="index.to_incl">To (inclusive)</label><input type="date" name="date_to" required></div>
+<div><label data-i18n="index.note_opt">Explanation (optional)</label><textarea name="note" rows="2" maxlength="500"></textarea></div>
+<div class="row"><button class="btn" data-i18n="index.send_req">Send the request</button><button type="button" class="btn ghost" id="lcancel" data-i18n="common.cancel">Cancel</button></div></form></dialog>
+<dialog id="dlg"><h2 data-i18n="index.corr_req">Correction request</h2>
+<form id="rf" class="form" style="grid-template-columns:1fr">
+<div><label data-i18n="index.what_missing">What is missing?</label><select name="kind"><option value="in" data-i18n="punch.arrival">Arrival</option><option value="out" data-i18n="punch.departure">Departure</option></select></div>
+<div id="rsitewrap"><label data-i18n="index.site">Site</label><select name="site_id" id="rsite" required></select></div>
+<div><label data-i18n="index.real_time">Real date and time</label><input type="datetime-local" name="local_time" required></div>
+<div><label data-i18n="index.note_req">Explanation (required)</label><textarea name="note" rows="3" minlength="3" required data-i18n-ph="index.forgot_ph" placeholder="e.g. I forgot to clock out, I left at 17:30"></textarea></div>
+<div class="row"><button class="btn" data-i18n="index.send_req">Send the request</button><button type="button" class="btn ghost" id="rcancel" data-i18n="common.cancel">Cancel</button></div></form></dialog>
+<dialog id="early"><h2 id="earlyt"></h2><p class="hint" data-i18n="index.early_hint">If you pressed Arrival by mistake, ask the administrator to void it from Corrections.</p>
+<div class="row"><button type="button" class="btn" id="earlyyes" data-i18n="index.early_yes">Yes, I am leaving now</button><button type="button" class="btn ghost" id="earlyno" data-i18n="index.early_no">No, I am staying</button></div></dialog>
+<dialog id="late"><h2 id="latet"></h2><p class="hint" data-i18n="index.late_hint">If you arrived earlier and forgot to clock in, declare the real arrival time.</p>
+<div class="row"><button type="button" class="btn" id="latenow" data-i18n="index.late_yes">Yes, I am arriving now</button><button type="button" class="btn ghost" id="lateforgot" data-i18n="index.late_forgot">I forgot my arrival</button><button type="button" class="btn ghost" id="latecancel" data-i18n="common.cancel">Cancel</button></div></dialog>
+</main>
+<script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>
+const {h,api,fmt,t}=P;let ME,STATE,LOCK=null,QRBAD=false;
+const QR=location.pathname.match(/^\/p\/([\w-]+)$/);
+const mySites=()=>LOCK?[LOCK]:STATE.sites;
+const say=(txt,c)=>{msg.textContent=txt;msg.className='hint '+(c||'')};
+const localNow=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
+async function refresh(){
+  const s=STATE=await api('GET','/api/punch/status');
+  site.replaceChildren(...mySites().map(x=>new Option(x.name,x.id)));
+  if(LOCK)site.value=LOCK.id;else if(s.open_site_id)site.value=s.open_site_id;
+  const fg=s.state==='forgotten';
+  forgot.hidden=!fg;go.hidden=fg;
+  sitewrap.style.display=!LOCK&&s.sites.length>1&&!fg?'':'none';
+  forgotin.hidden=fg||s.state!=='closed'||!s.sites.length;
+  if(fg){fgmsg.textContent=t('index.fg_msg',{day:s.open_since.slice(8,10)+'.'+s.open_since.slice(5,7),time:s.open_since.slice(11)});
+   ff.local_time.min=s.open_since;ff.local_time.max=localNow();
+   fgrej.hidden=!s.rejected_note;fgrej.textContent=s.rejected_note?t('index.prev_rejected',{note:s.rejected_note}):''}
+  const inn=s.next_kind==='out';
+  chip.className='chip'+(inn?' on':'');
+  chipt.textContent=fg?t('index.chip_unclosed'):inn?t('index.chip_in',{since:s.open_since.slice(11)})+(s.state==='pending_in'?t('dashboard.to_confirm'):''):t('index.chip_out');
+  go.className='big'+(inn?' out':'');gol.replaceChildren(inn?t('punch.departure'):t('punch.arrival'),h('small',{},inn?t('index.tap_leave'):t('index.tap_start')));
+  go.disabled=!s.sites.length||QRBAD;
+  if(!s.sites.length)say(t('index.no_sites'),'bad');
+  last.textContent=s.last?t('index.last',{kind:t('kind.'+s.last.kind),when:new Date(s.last.ts_utc).toLocaleString(P.locale,{dateStyle:'short',timeStyle:'short'})}):t('index.no_record');
+  const d=new Date().toLocaleDateString('sv');
+  const r=await api('GET','/api/reports/hours?from='+d+'&to='+d);
+  let hrs=r.days.reduce((a,x)=>a+x.hours,0);
+  if(inn){hrs+=(Date.now()-new Date(s.open_since))/36e5}
+  today.textContent=fmt(hrs)+' h';norma.textContent=t('index.norm',{h:ME.norma_h});
+  bar.className='bar'+(hrs>=ME.norma_h?' over':'');bar.firstChild.style.width=Math.min(100,hrs/ME.norma_h*100)+'%';
+}
+go.onclick=()=>{
+ if(STATE.next_kind==='out'&&STATE.state==='open'&&STATE.open_minutes<STATE.early_out_minutes){earlyt.textContent=t(STATE.open_minutes===1?'index.early_one':'index.early_many',{n:STATE.open_minutes});early.showModal();return}
+ if(STATE.next_kind==='in'&&new Date().getHours()>=STATE.late_in_hour){latet.textContent=t('index.late_title',{time:localNow().slice(11)});late.showModal();return}
+ doPunch()};
+earlyyes.onclick=()=>{early.close();doPunch()};
+earlyno.onclick=()=>early.close();
+latenow.onclick=()=>{late.close();doPunch()};
+lateforgot.onclick=()=>{late.close();openReq('in')};
+latecancel.onclick=()=>late.close();
+forgotin.onclick=()=>openReq('in');
+ff.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(ff));
+ try{await api('POST','/api/requests',{...b,kind:'out',site_id:STATE.open_site_id});ff.reset();P.toast(t('index.out_sent'));say('')}
+ catch(err){say(err.message,'bad');return}
+ refresh();loadMine()};
+async function doPunch(){say(t('index.reading'));go.disabled=true;
+ let p;try{p=await P.getFix()}catch(e){say(e.message,'bad');go.disabled=false;return}
+ try{const r=await api('POST','/api/punch',{site_id:+site.value,kind:STATE.next_kind,lat:p.coords.latitude,lon:p.coords.longitude,accuracy_m:p.coords.accuracy});
+  if(r.warning)say(r.warning,'warn');else say(t('index.recorded'),'ok')}
+ catch(e){say(e.message,'bad')}
+ refresh()}
+const ST={pending:['index.st.pending','warn'],approved:['index.st.approved','ok'],rejected:['index.st.rejected','bad']};
+async function loadMine(){const r=await api('GET','/api/requests/mine');
+ mine.replaceChildren(...r.slice(0,5).map(x=>h('div',{style:'padding:.6rem 0;border-top:1px solid var(--line)'},
+  h('div',{},h('b',{},t('punch.'+(x.kind==='in'?'arrival':'departure'))+' '+x.local_time),' ',h('span',{class:'badge '+ST[x.status][1]},t(ST[x.status][0]))),
+  h('div',{class:'hint'},x.note),x.decision_note?h('div',{class:'hint'},t('common.response',{text:x.decision_note})):null)))}
+const LV=k=>t('leave.kind.'+k);
+async function loadLeave(){const r=await api('GET','/api/leave/mine');
+ mylv.replaceChildren(...r.slice(0,5).map(x=>h('div',{style:'padding:.6rem 0;border-top:1px solid var(--line)'},
+  h('div',{},h('b',{},LV(x.kind)+' '+(x.date_from===x.date_to?x.date_from:x.date_from+' → '+x.date_to)+t('index.working_days',{n:x.days})),' ',h('span',{class:'badge '+ST[x.status][1]},t(ST[x.status][0]))),
+  x.note?h('div',{class:'hint'},x.note):null,x.decision_note?h('div',{class:'hint'},t('common.response',{text:x.decision_note})):null)))}
+async function dayInfo(){const d=new Date().toLocaleDateString('sv');
+ const[hol,lv]=await Promise.all([api('GET','/api/holidays?from='+d+'&to='+d),api('GET','/api/leave/mine')]);
+ const info=[];if(hol[d])info.push(t('index.holiday',{name:hol[d]}));
+ const mine=lv.find(x=>x.status==='approved'&&x.date_from<=d&&d<=x.date_to&&!hol[d]&&![0,6].includes(new Date().getDay()));
+ if(mine)info.push(t('index.leave_approved',{kind:LV(mine.kind),code:mine.code}));
+ dayinfo.hidden=!info.length;dayinfo.textContent=info.join(' · ')}
+lvbtn.append(P.icon('leave',16),t('index.leave_btn'));
+lvbtn.onclick=()=>{lf.reset();lf.date_from.value=lf.date_to.value=new Date().toLocaleDateString('sv');lvdlg.showModal()};
+lcancel.onclick=()=>lvdlg.close();
+lf.onsubmit=async e=>{e.preventDefault();
+ try{await api('POST','/api/leave',Object.fromEntries(new FormData(lf)))}catch(err){return}
+ lvdlg.close();P.toast(t('index.req_sent'));loadLeave()};
+reqbtn.append(P.icon('corrections',16),t('index.corr_btn'));
+function openReq(kind){if(!mySites().length){P.toast(t('index.no_sites'),'bad');return}
+ rf.reset();const rs=kind&&LOCK?[LOCK]:STATE.sites;rsite.replaceChildren(...rs.map(s=>new Option(s.name,s.id)));rsite.value=rs.length>1?site.value:rs[0].id;rsitewrap.hidden=rs.length<2;
+ rf.local_time.value=kind==='in'?localNow().slice(0,11)+'08:00':localNow();
+ if(kind)rf.kind.value=kind;if(kind==='in')rf.note.placeholder=t('index.arrive_ph');dlg.showModal()}
+reqbtn.onclick=()=>openReq();
+rcancel.onclick=()=>dlg.close();
+rf.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(rf));b.site_id=+b.site_id;
+ try{await api('POST','/api/requests',b)}catch(err){return}
+ dlg.close();P.toast(t('index.req_sent'));refresh();loadMine()};
+(async()=>{ME=await api('GET','/auth/me');P.header(ME,false);
+ hi.textContent=t('index.hello',{name:ME.name.split(' ')[0]});
+ date.textContent=new Date().toLocaleDateString(P.locale,{weekday:'long',day:'numeric',month:'long'});
+ if(ME.role==='admin'){document.querySelector('.top-in .spacer').replaceWith(h('a',{href:'/admin',class:'btn ghost sm'},t('index.admin')))}
+ if(QR){try{LOCK=await api('GET','/api/punch/site/'+encodeURIComponent(QR[1]));lockinfo.hidden=false;lockinfo.textContent='📍 '+LOCK.name}
+  catch(e){QRBAD=true;lockinfo.hidden=false;lockinfo.className='hint bad';lockinfo.textContent=t('index.qr_bad')}}
+ P.watchPermission(d=>{if(d)say(t('index.geo_blocked'),'bad')});loadMine();loadLeave();dayInfo();await refresh();
+})();
+</script></body></html>

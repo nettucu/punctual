@@ -1,0 +1,24 @@
+<!doctype html><html lang="ro"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f0542a"><link rel="icon" href="/brand/logo"><link rel="stylesheet" href="/static/app.css"><title>Punctual · Manual administrator</title>
+<body><main><h1>Manual pentru administratori</h1><p class="sub">Conturi, verificări zilnice, corecții și rapoarte.</p>
+<div class="card"><h2>1. Conturi noi</h2><ol>
+<li>În <b>Angajați</b> apasă <b>Generează link</b>, copiază linkul și trimite-l angajaților (WhatsApp sau email). Un singur link este valabil pentru toți, 6 ore. Un link nou îl invalidează pe cel vechi.</li>
+<li>Angajatul își creează singur contul. Contul apare în listă <b>inactiv</b> (rând estompat).</li>
+<li>Apasă <b>Editează</b>, bifează <b>Cont activ</b>, alege norma zilei, rolul și <b>locațiile permise</b>, apoi <b>Salvează</b>. Fără locații atribuite, angajatul nu poate ponta.</li>
+<li>Poți crea un cont și direct, cu parolă setată de tine (formularul <b>Adaugă angajat</b>).</li></ol>
+<p class="sub" style="margin:0">Regulă de parolă: minim 12 caractere, o literă mare, o cifră și un caracter special. Emailul nu se mai poate schimba după creare.</p></div>
+<div class="card"><h2>2. Parole, blocări, dezactivare</h2><ul>
+<li><b>Resetare parolă</b>: Editează, completezi <b>Parolă nouă</b>. Se închid toate sesiunile angajatului și se deblochează contul.</li>
+<li><b>Dezactivare</b>: debifezi <b>Cont activ</b>. Istoricul rămâne; angajatul nu se mai poate autentifica.</li>
+<li>Nu te poți dezactiva sau retrograda pe tine însuți.</li>
+<li>Primul administrator se creează din linia de comandă: <code>punctual-admin create-admin --name "Nume" --email "email"</code>.</li></ul></div>
+<div class="card"><h2>3. Locații și coduri QR</h2><p>În <b>Locații</b> definești cabinetul (poziție și rază permisă). În <b>Coduri QR</b> printezi codul fiecărui cabinet și îl afișezi la intrare. Dacă un cod a ajuns la cine nu trebuie, regenerează cheia locației: codul vechi nu mai funcționează.</p></div>
+<div class="card"><h2>4. Verificarea zilnică</h2><ul>
+<li><b>Dashboard</b>: cine este prezent, turele neînchise și zilele de verificat din ultimele 14 zile. Marchezi o zi ca verificată după ce o ai controlat.</li>
+<li><b>Încercări respinse</b>: pontaje refuzate (fără locație, tură deja deschisă sau închisă, locație neatribuită), păstrate 90 de zile. Pontajele făcute în afara zonei sau cu GPS slab nu sunt refuzate: se înregistrează și apar la „De verificat” în Dashboard, unde le aprobi.</li></ul></div>
+<div class="card"><h2>5. Corecții și cereri</h2><ul>
+<li><b>Corecții</b>: aprobi sau respingi cererile angajaților, adaugi un pontaj lipsă sau modifici un pontaj. Motivul este obligatoriu.</li>
+<li>Un pontaj nu se șterge: se <b>anulează</b>. O modificare anulează originalul și adaugă înlocuitorul. Totul rămâne în <b>Istoric modificări</b>, pentru inspecția muncii.</li>
+<li><b>Concedii</b>: aprobi sau respingi cererile Co (concediu de odihnă), Cm (concediu medical) și Zl (zi liberă). Decizia este finală.</li></ul></div>
+<div class="card"><h2>6. Rapoarte</h2><p>În <b>Rapoarte</b> alegi perioada și angajatul și exporți CSV. Sărbătorile legale, concediile (Co), concediile medicale (Cm) și zilele libere (Zl) sunt marcate; weekendurile și sărbătorile nu cer ore.</p></div>
+</main><script src="/i18n.js"></script><script src="/static/app.js"></script>
+<script>(async()=>{const me=await P.api('GET','/auth/me');if(me.role!=='admin'){location.href='/help';return}P.header(me,true)})();</script></body></html>
