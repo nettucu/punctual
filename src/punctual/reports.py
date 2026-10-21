@@ -23,6 +23,7 @@ from punctual.clock import (
     utc_str,
 )
 from punctual.db import connect
+from punctual.geofence import MAX_ACCURACY_M
 from punctual.holidays import holidays_between
 from punctual.i18n import t
 from punctual.leave import LeaveDay, leave_days
@@ -193,7 +194,7 @@ def build_report(d_from: date, d_to: date, employee_id: int | None = None) -> Re
     lo: str = utc_str(start - timedelta(days=1))
     hi: str = utc_str(end + timedelta(days=1))
     sql: str = (
-        "SELECT p.employee_id, e.name AS employee, e.norma_h, s.name AS site, p.kind, p.ts_utc, p.source, (p.source = 'device' AND (p.inside = 0 OR p.accuracy_m > 100) AND p.id NOT IN (SELECT punch_id FROM punch_approvals)) AS flag FROM live_punches p "
+        f"SELECT p.employee_id, e.name AS employee, e.norma_h, s.name AS site, p.kind, p.ts_utc, p.source, (p.source = 'device' AND (p.inside = 0 OR p.accuracy_m > {MAX_ACCURACY_M}) AND p.id NOT IN (SELECT punch_id FROM punch_approvals)) AS flag FROM live_punches p "
         "JOIN employees e ON e.id = p.employee_id JOIN sites s ON s.id = p.site_id "
         "WHERE p.ts_utc >= ? AND p.ts_utc < ?"
     )

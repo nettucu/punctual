@@ -37,7 +37,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </main><script src="/i18n.js"></script><script src="/static/app.js"></script>
 <script>
 const {h,api,t}=P;
-const LVK=['co','cm','zl'],SL=t('report.code.holiday');
+const LVK=['co','cm','zl','cfp'],SL=t('report.code.holiday');
 const LVN=Object.fromEntries(LVK.map(k=>[t('leave.code.'+k),t('leave.code.'+k)+' · '+t('reports.lv.'+k)]));
 lglv.textContent=LVK.map(k=>t('leave.code.'+k)+' '+t('reports.lv.'+k)).join(' · ');lghol.textContent=SL+' '+t('reports.lv.holiday');
 const TONE={open:'warn','missing out':'bad','orphan out':'bad','long shift':'warn'},ALAB=a=>t('anomaly.'+a.replace(' ','_'));

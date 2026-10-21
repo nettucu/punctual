@@ -17,6 +17,8 @@ from punctual.settings import settings
 
 logger: logging.Logger = logging.getLogger(__name__)
 
+MAX_ATTEMPTS_PER_DAY: int = 200  # per employee; rows younger than 30 days cannot be deleted, so a loop must not fill the DB
+
 router: APIRouter = APIRouter(prefix="/api/attempts", tags=["attempts"])
 
 
@@ -52,6 +54,14 @@ def record_attempt(
     """
     try:
         with connect() as conn:
+            if (
+                conn.execute(
+                    "SELECT COUNT(*) FROM punch_attempts WHERE employee_id = ? AND ts_utc > strftime(?, 'now', '-1 day')",
+                    (employee_id, ISO),
+                ).fetchone()[0]
+                >= MAX_ATTEMPTS_PER_DAY
+            ):
+                return
             known = conn.execute(
                 "SELECT 1 FROM sites WHERE id = ?", (site_id,)
             ).fetchone()
@@ -76,7 +86,8 @@ def record_attempt(
 
 
 def purge_old() -> int:
-    """Delete attempts older than the retention period (the DB refuses deleting anything younger than 30 days).
+    """Delete attempts older than the retention period (the DB refuses deleting anything younger than 30 days) and
+    expired login sessions.
 
     Returns:
         Number of rows deleted.
@@ -87,6 +98,7 @@ def purge_old() -> int:
             "DELETE FROM punch_attempts WHERE ts_utc < strftime(?, 'now', ?)",
             (ISO, f"-{days} days"),
         )
+        conn.execute("DELETE FROM sessions WHERE expires_at < strftime(?, 'now')", (ISO,))
     if cur.rowcount:
         logger.info(f"purged {cur.rowcount} punch attempts older than {days} days")
     return cur.rowcount

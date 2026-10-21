@@ -1,4 +1,4 @@
-"""Vacation, medical leave and free-day requests: an employee asks for days off, an admin approves or rejects.
+"""Vacation, medical, unpaid leave and free-day requests: an employee asks for days off, an admin approves or rejects.
 
 Only working days (no weekends, no public holidays) are covered by an approved request; reports mark them with the
 request's code.
@@ -30,12 +30,22 @@ router: APIRouter = APIRouter(prefix="/api", tags=["leave"])
 
 
 class LeaveIn(BaseModel):
-    """What the employee asks for: `kind` co = vacation, cm = medical leave, zl = free day; dates are inclusive local days."""
+    """What the employee asks for: `kind` co = vacation, cm = medical leave, zl = free day, cfp = unpaid leave; dates are inclusive local days."""
 
-    kind: Literal["co", "cm", "zl"]
+    kind: Literal["co", "cm", "zl", "cfp"]
     date_from: date
     date_to: date
     note: str = Field(default="", max_length=500)
+
+
+class AdminLeaveIn(BaseModel):
+    """An admin marks days as leave for an employee; approved at once, so `note` (the reason) is required."""
+
+    employee_id: int
+    kind: Literal["co", "cm", "zl", "cfp"]
+    date_from: date
+    date_to: date
+    note: str = Field(min_length=3, max_length=500)
 
 
 class DecisionBody(BaseModel):
@@ -199,6 +209,42 @@ def create_leave(
             ),
         )
     logger.warning(f"leave request {cur.lastrowid} by employee={user.id}")
+    return {"id": int(cur.lastrowid or 0)}
+
+
+@router.post("/leave/admin", status_code=201)
+def create_leave_admin(
+    body: AdminLeaveIn, admin: Annotated[Me, Depends(require_admin)]
+) -> dict[str, int]:
+    """Admin records leave for an employee, already approved (no age limit: this is how a past day is corrected).
+
+    Days that already have leave are overridden, not refused: `leave_days` lets the newest approved row win, and the
+    older row stays as history (leave is append-only).
+
+    Raises:
+        HTTPException: 422 for an unknown employee, a bad range or one without a working day.
+    """
+    if body.date_to < body.date_from or (body.date_to - body.date_from).days > 60:
+        raise HTTPException(status_code=422, detail=t("err.leave_range_max"))
+    if not working_days(body.date_from, body.date_to):
+        raise HTTPException(status_code=422, detail=t("err.leave_no_working_days"))
+    with connect() as conn:
+        if conn.execute("SELECT 1 FROM employees WHERE id = ?", (body.employee_id,)).fetchone() is None:
+            raise HTTPException(status_code=422, detail=t("err.unknown_employee_or_site"))
+        cur = conn.execute(
+            "INSERT INTO leave_requests (employee_id, kind, date_from, date_to, note, status, decided_by, decided_at) "
+            "VALUES (?, ?, ?, ?, ?, 'approved', ?, ?)",
+            (
+                body.employee_id,
+                body.kind,
+                body.date_from.isoformat(),
+                body.date_to.isoformat(),
+                body.note.strip(),
+                admin.id,
+                utc_str(datetime.now(UTC)),
+            ),
+        )
+    logger.warning(f"leave {cur.lastrowid} for employee={body.employee_id} set by admin={admin.id}")
     return {"id": int(cur.lastrowid or 0)}
 
 

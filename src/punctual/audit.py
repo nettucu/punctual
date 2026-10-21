@@ -32,6 +32,8 @@ Action = Literal[
     "request_approved",
     "request_rejected",
     "reviewed",
+    "leave_approved",
+    "leave_rejected",
 ]
 
 
@@ -95,6 +97,20 @@ _QUERIES: dict[str, str] = {
         "r.reason || ' [' || r.notes || ']' AS reason FROM day_reviews r "
         "JOIN employees a ON a.id = r.reviewed_by JOIN employees e ON e.id = r.employee_id"
     ),
+    "leave_approved": (
+        "SELECT l.decided_at AS at, a.name AS admin, e.name AS employee, l.employee_id, "
+        "l.date_from || 'T12:00:00Z' AS ts, NULL AS b_kind, NULL AS b_ts, NULL AS b_site, NULL AS a_kind, NULL AS a_ts, "
+        "NULL AS a_site, l.note || COALESCE(' / ' || l.decision_note, '') AS reason, "
+        "l.kind AS lv_kind, l.date_from AS lv_from, l.date_to AS lv_to FROM leave_requests l "
+        "JOIN employees a ON a.id = l.decided_by JOIN employees e ON e.id = l.employee_id WHERE l.status = 'approved'"
+    ),
+    "leave_rejected": (
+        "SELECT l.decided_at AS at, a.name AS admin, e.name AS employee, l.employee_id, "
+        "l.date_from || 'T12:00:00Z' AS ts, NULL AS b_kind, NULL AS b_ts, NULL AS b_site, NULL AS a_kind, NULL AS a_ts, "
+        "NULL AS a_site, l.note || COALESCE(' / ' || l.decision_note, '') AS reason, "
+        "l.kind AS lv_kind, l.date_from AS lv_from, l.date_to AS lv_to FROM leave_requests l "
+        "JOIN employees a ON a.id = l.decided_by JOIN employees e ON e.id = l.employee_id WHERE l.status = 'rejected'"
+    ),
     "request_rejected": (
         "SELECT r.decided_at AS at, a.name AS admin, e.name AS employee, r.employee_id, r.ts_utc AS ts, "
         "r.kind AS b_kind, r.ts_utc AS b_ts, s.name AS b_site, NULL AS a_kind, NULL AS a_ts, NULL AS a_site, "
@@ -103,6 +119,12 @@ _QUERIES: dict[str, str] = {
         "JOIN employees e ON e.id = r.employee_id JOIN sites s ON s.id = r.site_id WHERE r.status = 'rejected'"
     ),
 }
+
+
+def _leave_text(r) -> str:
+    """`Unpaid leave 2026-07-15 – 2026-07-16` for a leave decision row."""
+    period: str = r["lv_from"] if r["lv_from"] == r["lv_to"] else f"{r['lv_from']} – {r['lv_to']}"
+    return f"{t('leave.kind.' + r['lv_kind'])} {period}"
 
 
 def history(
@@ -140,6 +162,8 @@ def history(
                         else None,
                         after=describe(r["a_kind"], r["a_ts"], r["a_site"])
                         if r["a_ts"]
+                        else _leave_text(r)
+                        if "lv_kind" in r.keys()
                         else None,
                         reason=r["reason"],
                     )

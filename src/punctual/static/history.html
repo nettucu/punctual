@@ -9,7 +9,7 @@ const {h,api,t}=P;
 const iso=d=>d.toLocaleDateString('sv');const now=new Date();
 const qp=new URLSearchParams(location.search);
 q.from.value=qp.get('date')||iso(new Date(now-30*864e5));q.to.value=qp.get('date')||iso(now);
-const TONE={added:'ok',edited:'warn',voided:'bad',location_approved:'brand',request_approved:'ok',request_rejected:'bad',reviewed:'brand'};
+const TONE={added:'ok',edited:'warn',voided:'bad',location_approved:'brand',request_approved:'ok',request_rejected:'bad',leave_approved:'ok',leave_rejected:'bad',reviewed:'brand'};
 const params=()=>{const p=new URLSearchParams({from:q.from.value,to:q.to.value});if(q.employee_id.value)p.set('employee_id',q.employee_id.value);return p};
 async function run(){const d=await api('GET','/api/audit?'+params());
  rows.replaceChildren(...(d.length?d.map(x=>h('tr',{},h('td',{},x.at||'—'),h('td',{},x.admin),h('td',{},h('b',{},x.employee),h('div',{class:'hint'},t('history.day',{day:x.day}))),

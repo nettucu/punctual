@@ -9,6 +9,7 @@ from math import asin, cos, radians, sin, sqrt
 logger: logging.Logger = logging.getLogger(__name__)
 
 EARTH_RADIUS_M: float = 6_371_000.0
+MAX_ACCURACY_M: float = 100.0  # a GPS fix less accurate than this is flagged for review (reports, corrections, punch)
 
 
 @dataclass(frozen=True)

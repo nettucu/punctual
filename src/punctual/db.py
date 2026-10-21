@@ -99,12 +99,12 @@ BEGIN SELECT RAISE(ABORT, 'decided requests are final'); END;
 CREATE TRIGGER IF NOT EXISTS requests_no_delete BEFORE DELETE ON correction_requests
 BEGIN SELECT RAISE(ABORT, 'requests are append-only'); END;
 
--- Vacation (co), medical leave (cm) and free-day (zl) requests, same workflow as correction requests: decisions are final, rows are
+-- Vacation (co), medical leave (cm), free-day (zl) and unpaid-leave (cfp) requests, same workflow as correction requests: decisions are final, rows are
 -- never deleted. Dates are local days, inclusive.
 CREATE TABLE IF NOT EXISTS leave_requests (
     id INTEGER PRIMARY KEY,
     employee_id INTEGER NOT NULL REFERENCES employees(id),
-    kind TEXT NOT NULL CHECK (kind IN ('co', 'cm', 'zl')),
+    kind TEXT NOT NULL CHECK (kind IN ('co', 'cm', 'zl', 'cfp')),
     date_from TEXT NOT NULL,
     date_to TEXT NOT NULL CHECK (date_to >= date_from),
     note TEXT NOT NULL DEFAULT '',
@@ -201,8 +201,8 @@ def init_db(path: str | None = None) -> None:
         old = conn.execute(
             "SELECT sql FROM sqlite_master WHERE name = 'leave_requests'"
         ).fetchone()
-        rebuild_leave: bool = old is not None and "'cm'" not in old["sql"]
-        if rebuild_leave:  # CHECK constraints cannot be altered: swap in a table that allows 'cm', all in one transaction
+        rebuild_leave: bool = old is not None and "'cfp'" not in old["sql"]
+        if rebuild_leave:  # CHECK constraints cannot be altered: swap in a table that allows 'cfp', all in one transaction
             conn.executescript(
                 "BEGIN; DROP TRIGGER IF EXISTS leave_decided_final; DROP TRIGGER IF EXISTS leave_no_delete; "
                 "DROP INDEX IF EXISTS idx_leave_emp; ALTER TABLE leave_requests RENAME TO leave_requests_old;"

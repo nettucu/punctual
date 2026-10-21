@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from punctual.auth import Me, require_admin
 from punctual.clock import day_bounds, local_str, parse_local, utc_str
 from punctual.db import connect
+from punctual.geofence import MAX_ACCURACY_M
 from punctual.i18n import t
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -124,7 +125,7 @@ def list_punches(
             distance_m=r["distance_m"],
             accuracy_m=r["accuracy_m"],
             flagged=r["source"] == "device"
-            and (not r["inside"] or r["accuracy_m"] > 100)
+            and (not r["inside"] or r["accuracy_m"] > MAX_ACCURACY_M)
             and r["approve_reason"] is None,
             approved=r["approve_reason"] is not None,
             approve_reason=r["approve_reason"],

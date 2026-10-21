@@ -85,4 +85,4 @@ A Romanian legal holiday (the calendar is Romania-specific), computed in code (`
 A local day that is neither a weekend nor a public holiday.
 
 **Leave request** (cerere de concediu / zi liberă):
-An employee asks for vacation (**VAC**; **Co**, concediu de odihnă in the Romanian UI), medical leave (**MED**; **Cm**, concediu medical) or a free day (**OFF**; **Zl**, zi liberă) over a range of local days. An admin approves or rejects it; the decision is final. Once approved, every working day it covers is marked with its code in reports and expects no hours. Weekends and public holidays inside the range are not counted.
+An employee asks for vacation (**VAC**; **Co**, concediu de odihnă in the Romanian UI), medical leave (**MED**; **Cm**, concediu medical) a free day (**OFF**; **Zl**, zi liberă) or unpaid leave (**UNP**; **Cfp**, concediu fără plată) over a range of local days. An admin approves or rejects it; the decision is final. Once approved, every working day it covers is marked with its code in reports and expects no hours. Weekends and public holidays inside the range are not counted.

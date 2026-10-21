@@ -18,7 +18,7 @@
 <div class="card"><h2>5. Corrections and requests</h2><ul>
 <li><b>Corrections</b>: approve or reject employee requests, add a missing punch or edit a punch. A reason is required.</li>
 <li>A punch is never deleted: it is <b>voided</b>. An edit voids the original and adds the replacement. Everything stays in <b>Change history</b>, for labour inspections.</li>
-<li><b>Leave</b>: approve or reject vacation, medical leave and free-day requests. The decision is final.</li></ul></div>
-<div class="card"><h2>6. Reports</h2><p>In <b>Reports</b> pick the period and the employee and export CSV. Public holidays, vacation, medical leave and free days are marked; weekends and holidays expect no hours.</p></div>
+<li><b>Leave</b>: approve or reject vacation, medical leave, free-day and unpaid-leave requests. The decision is final. Under <b>Corrections</b> you can mark days as leave directly, approved at once.</li></ul></div>
+<div class="card"><h2>6. Reports</h2><p>In <b>Reports</b> pick the period and the employee and export CSV. Public holidays, vacation, medical leave, free days and unpaid leave are marked; weekends and holidays expect no hours.</p></div>
 </main><script src="/i18n.js"></script><script src="/static/app.js"></script>
 <script>(async()=>{const me=await P.api('GET','/auth/me');if(me.role!=='admin'){location.href='/help';return}P.header(me,true)})();</script></body></html>

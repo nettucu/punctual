@@ -13,14 +13,13 @@ from punctual.attempts import record_attempt
 from punctual.auth import Me, current_user
 from punctual.clock import day_bounds, local_date, local_hm, local_str, parse_utc, utc_str
 from punctual.db import connect
-from punctual.geofence import Site, distance_m, is_inside
+from punctual.geofence import MAX_ACCURACY_M, Site, distance_m, is_inside
 from punctual.i18n import t
 from punctual.settings import settings
 from punctual.state import ShiftState, effective_state
 
 logger: logging.Logger = logging.getLogger(__name__)
 
-MAX_ACCURACY_M: float = 100.0
 
 router: APIRouter = APIRouter(prefix="/api/punch", tags=["punch"])
 

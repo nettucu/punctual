@@ -11,6 +11,12 @@
 <div><label data-i18n="corrections.datetime">Date and time</label><input type="datetime-local" name="local_time" required></div>
 <div style="grid-column:1/-1"><label data-i18n="corrections.reason_req">Reason (required)</label><input name="note" minlength="3" required></div></div>
 <div class="row" style="margin-top:1rem"><button class="btn" data-i18n="corrections.add_btn">Add</button></div></form>
+<form id="lv" class="card"><h2 data-i18n="corrections.leave_add">Mark days as leave or day off</h2><p class="hint" data-i18n="corrections.leave_hint">Approved at once. If those days have wrong punches, void them above.</p><div class="form">
+<div><label data-i18n="common.employee">Employee</label><select name="employee_id" required></select></div>
+<div><label data-i18n="attempts.col.kind">Type</label><select name="kind"><option value="co" data-i18n="leave.kind.co">Vacation</option><option value="cm" data-i18n="leave.kind.cm">Medical leave</option><option value="zl" data-i18n="leave.kind.zl">Free day</option><option value="cfp" data-i18n="leave.kind.cfp">Unpaid leave</option></select></div>
+<div><label data-i18n="common.from">From</label><input type="date" name="date_from" required></div><div><label data-i18n="common.to">To</label><input type="date" name="date_to" required></div>
+<div style="grid-column:1/-1"><label data-i18n="corrections.reason_req">Reason (required)</label><input name="note" minlength="3" required></div></div>
+<div class="row" style="margin-top:1rem"><button class="btn" data-i18n="corrections.leave_btn">Mark</button></div></form>
 <dialog id="ed"><h2 data-i18n="corrections.edit">Edit punch</h2><p class="hint" id="edwho"></p>
 <form id="ef" class="form" style="grid-template-columns:1fr">
 <div><label data-i18n="attempts.col.kind">Type</label><select name="kind"><option value="in" data-i18n="punch.arrival">Arrival</option><option value="out" data-i18n="punch.departure">Departure</option></select></div>
@@ -23,7 +29,7 @@
 const {h,api,t}=P;
 const iso=d=>d.toLocaleDateString('sv');const now=new Date();
 const qp=new URLSearchParams(location.search),qd=qp.get('date');let SITES=[],EDIT=null;
-if(qd){q.from.value=qd;q.to.value=qd;a.local_time.value=qd+'T08:00'}else{q.from.value=iso(new Date(now-7*864e5));q.to.value=iso(now)}
+if(qd){q.from.value=qd;q.to.value=qd;a.local_time.value=qd+'T08:00';lv.date_from.value=qd;lv.date_to.value=qd}else{q.from.value=iso(new Date(now-7*864e5));q.to.value=iso(now)}
 async function run(){const p=new URLSearchParams({from:q.from.value,to:q.to.value});if(q.employee_id.value)p.set('employee_id',q.employee_id.value);
  const d=await api('GET','/api/corrections/punches?'+p);
  rows.replaceChildren(...(d.length?d.map(x=>h('tr',{class:(x.voided?'void':x.source==='admin'?'adm':'')+(String(x.id)===qp.get('punch')?' hl':'')},h('td',{},h('b',{},x.employee)),h('td',{},x.local_time),
@@ -55,13 +61,15 @@ ef.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData
  try{await api('POST','/api/corrections/punches/'+EDIT.id+'/edit',b)}catch(err){return}
  ed.close();P.toast(t('corrections.edited_toast'));run()};
 q.onsubmit=e=>{e.preventDefault();run()};
+lv.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(lv));b.employee_id=+b.employee_id;
+ await api('POST','/api/leave/admin',b);P.toast(t('corrections.leave_done'));lv.note.value=''};
 a.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(a));b.employee_id=+b.employee_id;b.site_id=+b.site_id;
  await api('POST','/api/corrections/punches',b);P.toast(t('corrections.added_toast'));a.note.value='';run()};
 (async()=>{const me=await api('GET','/auth/me');if(me.role!=='admin'){location.href='/';return}P.header(me,true);
  loadReqs();q.employee_id.add(new Option(t('common.all_employees'),''));
- for(const e of await api('GET','/api/employees')){q.employee_id.add(new Option(e.name,e.id));a.employee_id.add(new Option(e.name,e.id))}
+ for(const e of await api('GET','/api/employees')){q.employee_id.add(new Option(e.name,e.id));a.employee_id.add(new Option(e.name,e.id));lv.employee_id.add(new Option(e.name,e.id))}
  SITES=await api('GET','/api/sites');for(const s of SITES)a.site_id.add(new Option(s.name,s.id));
- const pe=qp.get('employee_id');if(pe){q.employee_id.value=pe;a.employee_id.value=pe}
+ const pe=qp.get('employee_id');if(pe){q.employee_id.value=pe;a.employee_id.value=pe;lv.employee_id.value=pe}
  if(qp.get('site_id'))a.site_id.value=qp.get('site_id');
  await run();
  if(qp.get('fix')==='out'){a.kind.value='out';a.local_time.value='';a.note.placeholder=t('corrections.fix_ph');
