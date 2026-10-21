@@ -35,6 +35,8 @@ main{max-width:70rem;margin:0 auto;padding:1.5rem 1rem 4rem}
 .grid{display:grid;gap:1rem}
 .stats{grid-template-columns:repeat(auto-fit,minmax(11rem,1fr))}
 .stat{padding:1rem 1.25rem}
+a.stat{color:inherit;text-decoration:none}
+a.stat:hover{border-color:var(--brand-strong)}
 .stat b{display:block;font-size:2rem;line-height:1.1;letter-spacing:-.02em}
 .stat span{color:var(--muted);font-size:.9rem}
 .stat.hot b{color:var(--brand-strong)}
