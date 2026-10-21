@@ -2,7 +2,7 @@
 <body><main><h1 data-i18n="history.heading">Change history</h1><p class="sub" data-i18n="history.sub">Every intervention on punches: manual additions, edits, voids, approved locations and correction requests. The period refers to the day of the affected punch. Nothing in this history can be deleted.</p>
 <form id="q" class="card form"><div><label data-i18n="common.from">From</label><input type="date" name="from" required></div><div><label data-i18n="common.to">To</label><input type="date" name="to" required></div>
 <div><label data-i18n="common.employee">Employee</label><select name="employee_id"></select></div><div class="row"><button class="btn" data-i18n="common.show">Show</button><button type="button" class="btn ghost" id="csv"></button></div></form>
-<div class="card flush"><div class="tbl"><table><thead><tr><th data-i18n="audit.csv.at">Changed at<th data-i18n="audit.csv.admin">Admin<th data-i18n="common.employee">Employee<th data-i18n="audit.csv.action">Action<th data-i18n="audit.csv.before">Before<th data-i18n="audit.csv.after">After<th data-i18n="audit.csv.reason">Reason</thead><tbody id="rows"></tbody></table></div></div>
+<div class="card flush"><div class="tbl nowrap"><table><thead><tr><th data-i18n="audit.csv.at">Changed at<th data-i18n="audit.csv.admin">Admin<th data-i18n="common.employee">Employee<th data-i18n="audit.csv.action">Action<th data-i18n="audit.csv.before">Before<th data-i18n="audit.csv.after">After<th data-i18n="audit.csv.reason">Reason</thead><tbody id="rows"></tbody></table></div></div>
 </main><script src="/i18n.js"></script><script src="/static/app.js"></script>
 <script>
 const {h,api,t}=P;

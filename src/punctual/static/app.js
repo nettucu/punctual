@@ -107,6 +107,12 @@ const P = (() => {
       for (const [k, href] of [['correction', '/admin/corrections'], ['leave', '/admin/leave'], ['accounts', '/admin/employees']])
         if (j && j[k] > 0) side.querySelector(`a[href="${href}"]`).append(h('span', {class: 'navbadge'}, j[k]));
     }).catch(() => {});
+    // Desktop: hide/show the sidebar, remembered per browser.
+    const KEY = 'punctual.sideoff';
+    const setOff = off => { document.body.classList.toggle('side-off', off); try { localStorage.setItem(KEY, off ? '1' : ''); } catch {} };
+    try { document.body.classList.toggle('side-off', !!localStorage.getItem(KEY)); } catch {}
+    document.body.prepend(h('button', {class: 'btn ghost sm sidetoggle', title: t('nav.menu'), 'aria-label': t('nav.menu'),
+      onclick: () => setOff(!document.body.classList.contains('side-off'))}, icon('menu', 16)));
     const h1 = document.querySelector('main h1');
     if (h1 && current) h1.prepend(icon(current[2], 26));
   };

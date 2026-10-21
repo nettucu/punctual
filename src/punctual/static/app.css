@@ -116,7 +116,14 @@ h1 .ico{margin-right:.5rem;color:var(--brand-strong);position:relative;top:-2px}
 body.admin main{margin-left:15.5rem;max-width:none;padding-left:2rem;padding-right:2rem}
 body.admin main>*{max-width:72rem}
 .mtop,.scrim{display:none}
+.sidetoggle{position:fixed;top:.9rem;left:15.9rem;z-index:31;width:2rem;height:2rem;padding:0;transition:left .25s}
+body.side-off .side{transform:translateX(-100%)}
+body.side-off .sidetoggle{left:.6rem}
+body.side-off.admin main{margin-left:0}
+body.side-off.admin main>*{max-width:none}
+@media (min-width:901px){.tbl.nowrap td,.tbl.nowrap th{white-space:nowrap}}
 @media (max-width:900px){
+  .sidetoggle{display:none}
   .side{transform:translateX(-100%)}
   body.nav-open .side{transform:none;box-shadow:0 0 40px rgba(0,0,0,.35)}
   body.admin main{margin-left:0;padding-left:1rem;padding-right:1rem}
@@ -124,6 +131,6 @@ body.admin main>*{max-width:72rem}
   .mtop img{height:26px}.mtitle{font-weight:700;color:var(--muted)}
   body.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:25}
 }
-@media print{.side,.mtop,.scrim{display:none!important}body.admin main{margin-left:0}}
+@media print{.side,.mtop,.scrim,.sidetoggle{display:none!important}body.admin main{margin-left:0}}
 tr.hl td{background:var(--warn-bg)}
 [hidden]{display:none!important}
