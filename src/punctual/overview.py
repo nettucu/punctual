@@ -110,10 +110,12 @@ def overview(_: Annotated[Me, Depends(require_admin)]) -> Overview:
             "employee": d.employee,
             "employee_id": d.employee_id,
             "day": d.day,
-            "notes": d.anomalies + (["location"] if d.location_flag else []),
+            "notes": notes,
         }
         for d in rep.days
-        if (d.anomalies or d.location_flag) and not d.reviewed
+        # A shift still running is not a problem yet: it turns into `missing out` after the cutoff.
+        if (notes := [a for a in d.anomalies if a != "open"] + (["location"] if d.location_flag else []))
+        and not d.reviewed
     ]
     return Overview(
         clocked_in=clocked,

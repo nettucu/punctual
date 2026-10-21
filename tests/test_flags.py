@@ -182,3 +182,12 @@ def test_far_and_coarse_punches_are_recorded_and_flagged_by_default(client):
         "/api/punch", json={"site_id": sid, "kind": "in", **NEAR, "accuracy_m": 2000}
     )
     assert r.status_code == 201 and r.json()["flagged"] is True
+
+
+def test_running_shift_is_not_flagged_on_dashboard(client):
+    sid = setup(client)
+    client.post("/api/punch", json={"site_id": sid, "kind": "in", **NEAR})
+    client.post("/auth/logout")
+    login(client, "boss@example.com")
+    o = client.get("/api/admin/overview").json()
+    assert o["clocked_in"] and o["flagged_days"] == []
