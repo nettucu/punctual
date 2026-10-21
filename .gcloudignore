@@ -21,3 +21,11 @@ docs
 scripts
 gcs-key.json
 backup
+.serena
+.claude
+.github
+GLOSSARY.md
+SECURITY.md
+.env.example
+.ruff_cache
+.pytest_cache
