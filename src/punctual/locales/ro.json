@@ -194,7 +194,7 @@
  "err.too_many_pending": "Ai deja prea multe cereri în așteptare.",
  "err.unknown_employee_or_site": "Angajat sau locație necunoscută.",
  "err.unknown_site": "Locație necunoscută: {id}.",
- "geo.blocked_ios": "Accesul la locație este blocat. Pe iPhone: Setări → Confidențialitate și securitate → Servicii de localizare → alege browserul (Safari/Chrome) → „La utilizare”. Apoi reîncarcă pagina și încearcă din nou.",
+ "geo.blocked_ios": "Locația este blocată pe telefon. Verifică 2 lucruri: (1) Setări iPhone → Confidențialitate și securitate → Servicii de localizare: să fie pornit, iar la browserul folosit (Safari sau Chrome) alege „La utilizare”. (2) În browser, apasă iconița din bara de adrese → Permisiuni sau Setări site → Locație → Permite. Apoi reîncarcă pagina și încearcă din nou.",
  "geo.blocked": "Accesul la locație este blocat. Permite locația pentru acest site în setările browserului și încearcă din nou.",
  "geo.timeout": "Locația nu a putut fi citită la timp. Ieși într-un loc deschis și încearcă din nou.",
  "geo.unavailable": "Locația telefonului este oprită sau indisponibilă. Pornește GPS/Locația și încearcă din nou.",

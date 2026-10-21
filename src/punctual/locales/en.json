@@ -194,7 +194,7 @@
  "err.too_many_pending": "You already have too many pending requests.",
  "err.unknown_employee_or_site": "Unknown employee or site.",
  "err.unknown_site": "Unknown site {id}.",
- "geo.blocked_ios": "Location access is blocked. On iPhone: Settings → Privacy & Security → Location Services → pick your browser (Safari/Chrome) → \"While Using\". Then reload the page and try again.",
+ "geo.blocked_ios": "Location is blocked on this phone. Check 2 things: (1) iPhone Settings → Privacy & Security → Location Services: turned on, and for the browser you use (Safari or Chrome) choose \"While Using\". (2) In the browser, tap the icon in the address bar → Permissions or Site Settings → Location → Allow. Then reload the page and try again.",
  "geo.blocked": "Location access is blocked. Allow location for this site in the browser settings and try again.",
  "geo.timeout": "The location could not be read in time. Go somewhere open and try again.",
  "geo.unavailable": "The phone's location is off or unavailable. Turn on GPS/Location and try again.",
