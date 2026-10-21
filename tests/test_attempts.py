@@ -133,3 +133,13 @@ def test_retention_floor_is_30_days(client, monkeypatch):
         )
     assert purge_old() == 0
     assert client.get("/admin/attempts").status_code == 200
+
+
+def test_phone_geo_failure_is_logged(client):
+    sid = setup(client)
+    body = {"site_id": sid, "kind": "in", "reason": "geo_denied", "detail": "1 denied | iPhone"}
+    assert client.post("/api/punch/failure", json=body).status_code == 204
+    assert client.post("/api/punch/failure", json={**body, "reason": "x"}).status_code == 422
+    with db.connect() as conn:
+        r = conn.execute("SELECT reason, detail FROM punch_attempts").fetchall()
+    assert [tuple(x) for x in r] == [("geo_denied", "1 denied | iPhone")]

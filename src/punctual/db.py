@@ -133,7 +133,8 @@ CREATE TABLE IF NOT EXISTS punch_attempts (
     lon REAL NOT NULL,
     accuracy_m REAL NOT NULL,
     distance_m REAL,
-    reason TEXT NOT NULL
+    reason TEXT NOT NULL,
+    detail TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_attempts_ts ON punch_attempts(ts_utc);
 CREATE TRIGGER IF NOT EXISTS attempts_no_update BEFORE UPDATE ON punch_attempts
@@ -245,6 +246,8 @@ def init_db(path: str | None = None) -> None:
             )
         if "created_at" not in cols:
             conn.execute("ALTER TABLE punches ADD COLUMN created_at TEXT")
+        if "detail" not in {r["name"] for r in conn.execute("PRAGMA table_info(punch_attempts)")}:
+            conn.execute("ALTER TABLE punch_attempts ADD COLUMN detail TEXT")  # UPDATE trigger only blocks UPDATEs
         # The one definition of a punch that counts: not voided. Read this instead of repeating the rule.
         conn.execute(
             "CREATE VIEW IF NOT EXISTS live_punches AS "

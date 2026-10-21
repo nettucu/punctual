@@ -86,7 +86,8 @@ ff.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData
  catch(err){say(err.message,'bad');return}
  refresh();loadMine()};
 async function doPunch(){say(t('index.reading'));go.disabled=true;
- let p;try{p=await P.getFix()}catch(e){say(e.message,'bad');go.disabled=false;return}
+ let p;try{p=await P.getFix()}catch(e){say(e.message,'bad');go.disabled=false;
+  if(e.reason)fetch('/api/punch/failure',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({site_id:+site.value,kind:STATE.next_kind,reason:e.reason,detail:e.detail})}).catch(()=>{});return}
  try{const r=await api('POST','/api/punch',{site_id:+site.value,kind:STATE.next_kind,lat:p.coords.latitude,lon:p.coords.longitude,accuracy_m:p.coords.accuracy});
   if(r.warning)say(r.warning,'warn');else say(t('index.recorded'),'ok')}
  catch(e){say(e.message,'bad')}

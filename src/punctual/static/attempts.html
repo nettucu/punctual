@@ -9,12 +9,12 @@ const {h,api,t}=P;
 const iso=d=>d.toLocaleDateString('sv');const now=new Date();
 q.from.value=iso(new Date(now-30*864e5));q.to.value=iso(now);
 const km=m=>m==null?'—':(m>=1000?(m/1000).toFixed(1)+' km':Math.round(m)+' m');
-const TONE={too_far:'bad',outside_zone:'bad',bad_location:'bad',low_accuracy:'warn',no_open_shift:'',already_in:'',not_assigned:'warn'};
+const TONE={too_far:'bad',outside_zone:'bad',bad_location:'bad',low_accuracy:'warn',no_open_shift:'',already_in:'',not_assigned:'warn',geo_denied:'bad',geo_unavailable:'warn',geo_timeout:'warn',geo_unsupported:'bad'};
 async function run(){const p=new URLSearchParams({from:q.from.value,to:q.to.value});if(q.employee_id.value)p.set('employee_id',q.employee_id.value);
  const d=await api('GET','/api/attempts?'+p);
  rows.replaceChildren(...(d.length?d.map(x=>h('tr',{},h('td',{},x.local_time),h('td',{},h('b',{},x.employee)),h('td',{},x.site||'—'),
   h('td',{},h('span',{class:'badge '+(x.kind==='in'?'ok':'')},t('kind.'+x.kind))),
-  h('td',{},h('span',{class:'badge '+(TONE[x.reason]||'')},x.reason_label),x.accuracy_m>100?h('span',{class:'badge warn'},'GPS ±'+Math.round(x.accuracy_m)+' m'):null),
+  h('td',{},h('span',{class:'badge '+(TONE[x.reason]||'')},x.reason_label),x.detail?h('div',{class:'hint'},x.detail):null,x.accuracy_m>100?h('span',{class:'badge warn'},'GPS ±'+Math.round(x.accuracy_m)+' m'):null),
   h('td',{class:'num'},km(x.distance_m)),
   h('td',{class:'num'},x.site_lat!=null&&!(x.lat===0&&x.lon===0)?h('a',{class:'badge brand',target:'_blank',rel:'noopener',href:'https://www.google.com/maps/dir/?api=1&origin='+x.site_lat+','+x.site_lon+'&destination='+x.lat+','+x.lon},t('attempts.map')):null))):
   [h('tr',{},h('td',{colspan:7,class:'empty'},t('attempts.empty')))]))}

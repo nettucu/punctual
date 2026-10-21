@@ -35,6 +35,7 @@ def record_attempt(
     accuracy_m: float,
     reason: str,
     distance_m: float | None = None,
+    detail: str | None = None,
 ) -> None:
     """Store a rejected attempt (own connection, so it survives the caller's rollback) and purge old rows.
 
@@ -47,6 +48,7 @@ def record_attempt(
         accuracy_m: Reported GPS accuracy.
         reason: Rejection reason code (see the `attempt.*` messages).
         distance_m: Distance from the site, when known.
+        detail: Free-text diagnostics (device, permission state), when known.
     """
     try:
         with connect() as conn:
@@ -54,8 +56,8 @@ def record_attempt(
                 "SELECT 1 FROM sites WHERE id = ?", (site_id,)
             ).fetchone()
             conn.execute(
-                "INSERT INTO punch_attempts (employee_id, site_id, kind, lat, lon, accuracy_m, distance_m, reason) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO punch_attempts (employee_id, site_id, kind, lat, lon, accuracy_m, distance_m, reason, detail) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     employee_id,
                     site_id if known else None,
@@ -65,6 +67,7 @@ def record_attempt(
                     accuracy_m,
                     None if distance_m is None else round(distance_m, 1),
                     reason,
+                    detail,
                 ),
             )
         purge_old()
@@ -100,6 +103,7 @@ class AttemptRow(BaseModel):
     kind: str
     reason: str
     reason_label: str
+    detail: str | None
     distance_m: float | None
     accuracy_m: float
     lat: float
@@ -139,6 +143,7 @@ def list_attempts(
             kind=r["kind"],
             reason=r["reason"],
             reason_label=reason_label(r["reason"]),
+            detail=r["detail"],
             distance_m=r["distance_m"],
             accuracy_m=r["accuracy_m"],
             lat=r["lat"],

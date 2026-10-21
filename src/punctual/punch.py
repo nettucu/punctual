@@ -35,6 +35,15 @@ class PunchIn(BaseModel):
     accuracy_m: float = Field(ge=0)
 
 
+class GeoFailure(BaseModel):
+    """A punch the browser could not even start: the phone gave no position."""
+
+    site_id: int
+    kind: Literal["in", "out"]
+    reason: Literal["geo_denied", "geo_unavailable", "geo_timeout", "geo_unsupported"]
+    detail: str = Field(default="", max_length=400)
+
+
 class PunchOut(BaseModel):
     """A recorded punch."""
 
@@ -145,6 +154,17 @@ def site_by_key(
     if row is None:
         raise HTTPException(status_code=404, detail=t("err.qr_unknown"))
     return dict(row)
+
+
+@router.post("/failure", status_code=204)
+def geo_failure(body: GeoFailure, user: Annotated[Me, Depends(current_user)]) -> None:
+    """Log a punch that failed on the phone (no GPS fix), so admins can diagnose it in the attempts list."""
+    logger.warning(
+        f"punch geo failure employee={user.id} reason={body.reason} detail={body.detail}"
+    )
+    record_attempt(
+        user.id, body.site_id, body.kind, 0, 0, 0, body.reason, detail=body.detail
+    )
 
 
 @router.post("", response_model=PunchOut, status_code=201)

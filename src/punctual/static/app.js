@@ -112,11 +112,13 @@ const P = (() => {
   };
   // Resolves with the GPS fix or rejects with an actionable message. Never punch without a fix.
   const getFix = () => new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error(t('geo.unsupported')));
-    navigator.geolocation.getCurrentPosition(resolve, e => reject(new Error(
-      e.code === 1 ? t('geo.blocked')
-      : e.code === 2 ? t('geo.unavailable')
-      : t('geo.timeout'))),
+    const fail = (reason, msg, e) => reject(Object.assign(new Error(msg), {reason, detail: `${e ? e.code + ' ' + e.message : ''} | ${navigator.userAgent}`}));
+    if (!navigator.geolocation) return fail('geo_unsupported', t('geo.unsupported'));
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    navigator.geolocation.getCurrentPosition(resolve, e =>
+      e.code === 1 ? fail('geo_denied', t(ios ? 'geo.blocked_ios' : 'geo.blocked'), e)
+      : e.code === 2 ? fail('geo_unavailable', t('geo.unavailable'), e)
+      : fail('geo_timeout', t('geo.timeout'), e),
     {enableHighAccuracy: true, timeout: 20000, maximumAge: 0});
   });
   // Warn early (before tapping) when location access is already blocked.
