@@ -2,8 +2,9 @@ FROM python:3.11-slim AS litestream
 ARG LITESTREAM_VERSION=0.5.12
 # Bump LITESTREAM_VERSION and this digest together (the release page lists the sha256 of each asset).
 ARG LITESTREAM_SHA256=e10049d206079ef12dc623d859780b2f7a06d32418dc1939004381abbafd01f1
-ADD --checksum=sha256:${LITESTREAM_SHA256} https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-${LITESTREAM_VERSION}-linux-x86_64.tar.gz /tmp/ls.tgz
-RUN tar -C /usr/local/bin -xzf /tmp/ls.tgz litestream
+ADD https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-${LITESTREAM_VERSION}-linux-x86_64.tar.gz /tmp/ls.tgz
+# sha256sum, not ADD --checksum: Cloud Build's classic Docker builder does not know that flag.
+RUN echo "${LITESTREAM_SHA256}  /tmp/ls.tgz" | sha256sum -c - && tar -C /usr/local/bin -xzf /tmp/ls.tgz litestream
 
 FROM python:3.11-slim
 COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /usr/local/bin/uv
