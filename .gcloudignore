@@ -19,6 +19,7 @@ deploy/docker-compose.yml
 deploy/Caddyfile
 docs
 scripts
+tmp
 gcs-key.json
 backup
 .serena

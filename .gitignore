@@ -27,3 +27,6 @@ gcs-key.json
 
 # DB backups (employee PII)
 /backup/
+
+# one-off local scripts and scratch files
+/tmp/
