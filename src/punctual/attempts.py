@@ -98,7 +98,9 @@ def purge_old() -> int:
             "DELETE FROM punch_attempts WHERE ts_utc < strftime(?, 'now', ?)",
             (ISO, f"-{days} days"),
         )
-        conn.execute("DELETE FROM sessions WHERE expires_at < strftime(?, 'now')", (ISO,))
+        conn.execute(
+            "DELETE FROM sessions WHERE expires_at < strftime(?, 'now')", (ISO,)
+        )
     if cur.rowcount:
         logger.info(f"purged {cur.rowcount} punch attempts older than {days} days")
     return cur.rowcount

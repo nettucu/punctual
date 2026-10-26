@@ -163,12 +163,17 @@ def test_pages_have_no_untranslated_keys_in_romanian(boss, live):
 def test_time_picker_is_24h_and_value_roundtrips(page, live):
     login(page, live, "ana@example.com")
     page.click("#reqbtn")
-    page.evaluate("document.querySelector('#rf [name=local_time]').value = '2026-01-05T17:45'")
+    page.evaluate(
+        "document.querySelector('#rf [name=local_time]').value = '2026-01-05T17:45'"
+    )
     sel = page.locator("#rf .dt24 select")
     expect(sel.nth(0)).to_have_value("17")
     expect(sel.nth(1)).to_have_value("45")
     sel.nth(0).select_option("08")
-    assert page.evaluate("document.querySelector('#rf [name=local_time]').value") == "2026-01-05T08:45"
+    assert (
+        page.evaluate("document.querySelector('#rf [name=local_time]').value")
+        == "2026-01-05T08:45"
+    )
 
 
 def test_punch_row_shows_map_icon_for_ok_punch(page, boss, live):

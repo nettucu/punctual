@@ -338,7 +338,14 @@ def test_delete_employee_only_without_history(client):
     assert client.delete(f"/api/employees/{boss}").status_code == 409
     fresh = client.post(
         "/api/employees",
-        json={"name": "Typo", "email": "typo@example.com", "password": PW, "role": "employee", "norma_h": 8, "site_ids": [sid]},
+        json={
+            "name": "Typo",
+            "email": "typo@example.com",
+            "password": PW,
+            "role": "employee",
+            "norma_h": 8,
+            "site_ids": [sid],
+        },
     ).json()["id"]
     assert client.delete(f"/api/employees/{fresh}").status_code == 204
     assert client.delete(f"/api/employees/{fresh}").status_code == 404

@@ -229,8 +229,15 @@ def create_leave_admin(
     if not working_days(body.date_from, body.date_to):
         raise HTTPException(status_code=422, detail=t("err.leave_no_working_days"))
     with connect() as conn:
-        if conn.execute("SELECT 1 FROM employees WHERE id = ?", (body.employee_id,)).fetchone() is None:
-            raise HTTPException(status_code=422, detail=t("err.unknown_employee_or_site"))
+        if (
+            conn.execute(
+                "SELECT 1 FROM employees WHERE id = ?", (body.employee_id,)
+            ).fetchone()
+            is None
+        ):
+            raise HTTPException(
+                status_code=422, detail=t("err.unknown_employee_or_site")
+            )
         cur = conn.execute(
             "INSERT INTO leave_requests (employee_id, kind, date_from, date_to, note, status, decided_by, decided_at) "
             "VALUES (?, ?, ?, ?, ?, 'approved', ?, ?)",
@@ -244,7 +251,9 @@ def create_leave_admin(
                 utc_str(datetime.now(UTC)),
             ),
         )
-    logger.warning(f"leave {cur.lastrowid} for employee={body.employee_id} set by admin={admin.id}")
+    logger.warning(
+        f"leave {cur.lastrowid} for employee={body.employee_id} set by admin={admin.id}"
+    )
     return {"id": int(cur.lastrowid or 0)}
 
 

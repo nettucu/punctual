@@ -123,7 +123,9 @@ _QUERIES: dict[str, str] = {
 
 def _leave_text(r) -> str:
     """`Unpaid leave 2026-07-15 – 2026-07-16` for a leave decision row."""
-    period: str = r["lv_from"] if r["lv_from"] == r["lv_to"] else f"{r['lv_from']} – {r['lv_to']}"
+    period: str = (
+        r["lv_from"] if r["lv_from"] == r["lv_to"] else f"{r['lv_from']} – {r['lv_to']}"
+    )
     return f"{t('leave.kind.' + r['lv_kind'])} {period}"
 
 
@@ -163,7 +165,7 @@ def history(
                         after=describe(r["a_kind"], r["a_ts"], r["a_site"])
                         if r["a_ts"]
                         else _leave_text(r)
-                        if "lv_kind" in r.keys()
+                        if "lv_kind" in r.keys()  # noqa: SIM118 (sqlite3.Row: `in` tests values)
                         else None,
                         reason=r["reason"],
                     )

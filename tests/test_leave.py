@@ -184,12 +184,24 @@ def test_admin_marks_unpaid_leave_and_overrides_existing_leave(client):
     # Correcting the type: the newer approved row wins, the old one stays as history.
     assert client.post("/api/leave/admin", json=body).status_code == 201
     assert [x.code for x in build_report(mon, mon, 1).leave] == ["UNP"]
-    ok = {**body, "date_from": (mon + timedelta(days=7)).isoformat(), "date_to": (mon + timedelta(days=7)).isoformat()}
+    ok = {
+        **body,
+        "date_from": (mon + timedelta(days=7)).isoformat(),
+        "date_to": (mon + timedelta(days=7)).isoformat(),
+    }
     assert client.post("/api/leave/admin", json={**ok, "note": "x"}).status_code == 422
-    assert client.post("/api/leave/admin", json={**ok, "employee_id": 99}).status_code == 422
+    assert (
+        client.post("/api/leave/admin", json={**ok, "employee_id": 99}).status_code
+        == 422
+    )
     # Both decisions show in the change history.
     actions = {
         (e["action"], e["after"].split(" ")[0])
-        for e in client.get("/api/audit", params={"from": mon.isoformat(), "to": mon.isoformat()}).json()
+        for e in client.get(
+            "/api/audit", params={"from": mon.isoformat(), "to": mon.isoformat()}
+        ).json()
     }
-    assert ("leave_approved", "Unpaid") in actions and ("leave_approved", "Free") in actions
+    assert ("leave_approved", "Unpaid") in actions and (
+        "leave_approved",
+        "Free",
+    ) in actions

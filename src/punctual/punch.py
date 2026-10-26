@@ -11,7 +11,14 @@ from pydantic import BaseModel, Field
 
 from punctual.attempts import record_attempt
 from punctual.auth import Me, current_user
-from punctual.clock import day_bounds, local_date, local_hm, local_str, parse_utc, utc_str
+from punctual.clock import (
+    day_bounds,
+    local_date,
+    local_hm,
+    local_str,
+    parse_utc,
+    utc_str,
+)
 from punctual.db import connect
 from punctual.geofence import MAX_ACCURACY_M, Site, distance_m, is_inside
 from punctual.i18n import t
@@ -75,7 +82,9 @@ def forgotten_message(st: ShiftState) -> str:
     return t("punch.forgotten", day=day, since=local_hm(st.open_since))
 
 
-def _too_frequent(conn, employee_id: int, kind: str, st: ShiftState) -> tuple[str, str] | None:
+def _too_frequent(
+    conn, employee_id: int, kind: str, st: ShiftState
+) -> tuple[str, str] | None:
     """Refusal for punches that follow the previous one too closely or pile up within a day (taps, tests, retries)."""
     now: datetime = datetime.now(UTC)
     if kind == "out" and st.open_punch_id and st.open_since:

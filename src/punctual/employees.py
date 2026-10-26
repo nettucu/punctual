@@ -195,8 +195,14 @@ def delete_employee(
         _load(conn, employee_id)
         try:
             conn.execute("DELETE FROM sessions WHERE employee_id = ?", (employee_id,))
-            conn.execute("DELETE FROM employee_sites WHERE employee_id = ?", (employee_id,))
+            conn.execute(
+                "DELETE FROM employee_sites WHERE employee_id = ?", (employee_id,)
+            )
             conn.execute("DELETE FROM employees WHERE id = ?", (employee_id,))
-        except sqlite3.IntegrityError as exc:  # a foreign key points at them: history exists
-            raise HTTPException(status_code=409, detail=t("err.employee_has_history")) from exc
+        except (
+            sqlite3.IntegrityError
+        ) as exc:  # a foreign key points at them: history exists
+            raise HTTPException(
+                status_code=409, detail=t("err.employee_has_history")
+            ) from exc
     logger.warning(f"employee {employee_id} deleted by admin {admin.id}")

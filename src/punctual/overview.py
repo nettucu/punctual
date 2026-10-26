@@ -114,7 +114,10 @@ def overview(_: Annotated[Me, Depends(require_admin)]) -> Overview:
         }
         for d in rep.days
         # A shift still running is not a problem yet: it turns into `missing out` after the cutoff.
-        if (notes := [a for a in d.anomalies if a != "open"] + (["location"] if d.location_flag else []))
+        if (
+            notes := [a for a in d.anomalies if a != "open"]
+            + (["location"] if d.location_flag else [])
+        )
         and not d.reviewed
     ]
     return Overview(
