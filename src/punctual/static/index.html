@@ -25,6 +25,9 @@
 <p class="hint" style="margin-top:-.4rem" data-i18n="index.leave_sub">Request vacation, medical leave or a free day. Weekends and public holidays do not count.</p>
 <button class="btn ghost" id="lvbtn"></button>
 <div id="mylv" style="margin-top:1rem"></div></div>
+<div class="card" style="text-align:left"><h2 data-i18n="index.punches">My punches</h2>
+<p class="hint" style="margin-top:-.4rem" data-i18n="index.punches_sub">Your clock-ins and clock-outs from the last 14 days.</p>
+<div id="mypun"></div></div>
 <dialog id="lvdlg"><h2 data-i18n="index.leave_req">Leave / day off request</h2>
 <form id="lf" class="form" style="grid-template-columns:1fr">
 <div><label data-i18n="attempts.col.kind">Type</label><select name="kind"><option value="co" data-i18n="index.kind.co">Vacation</option><option value="cm" data-i18n="index.kind.cm">Medical leave</option><option value="zl" data-i18n="index.kind.zl">Free day</option><option value="cfp" data-i18n="index.kind.cfp">Unpaid leave (UNP)</option></select></div>
@@ -91,12 +94,17 @@ async function doPunch(){say(t('index.reading'));go.disabled=true;
  try{const r=await api('POST','/api/punch',{site_id:+site.value,kind:STATE.next_kind,lat:p.coords.latitude,lon:p.coords.longitude,accuracy_m:p.coords.accuracy});
   if(r.warning)say(r.warning,'warn');else say(t('index.recorded'),'ok')}
  catch(e){say(e.message,'bad')}
- refresh()}
+ refresh();loadPunches()}
 const ST={pending:['index.st.pending','warn'],approved:['index.st.approved','ok'],rejected:['index.st.rejected','bad']};
 async function loadMine(){const r=await api('GET','/api/requests/mine');
  mine.replaceChildren(...r.slice(0,5).map(x=>h('div',{style:'padding:.6rem 0;border-top:1px solid var(--line)'},
   h('div',{},h('b',{},t('punch.'+(x.kind==='in'?'arrival':'departure'))+' '+x.local_time),' ',h('span',{class:'badge '+ST[x.status][1]},t(ST[x.status][0]))),
   h('div',{class:'hint'},x.note),x.decision_note?h('div',{class:'hint'},t('common.response',{text:x.decision_note})):null)))}
+async function loadPunches(){const iso=d=>d.toLocaleDateString('sv');const n=new Date();
+ const r=await api('GET','/api/punch/mine?from='+iso(new Date(n-13*864e5))+'&to='+iso(n));
+ mypun.replaceChildren(...(r.length?r.map(x=>h('div',{style:'padding:.5rem 0;border-top:1px solid var(--line)'},
+  h('b',{},x.day.slice(8)+'.'+x.day.slice(5,7)+' '+x.time),' ',h('span',{class:'badge '+(x.kind==='in'?'ok':'warn')},t('punch.'+(x.kind==='in'?'arrival':'departure'))),
+  h('span',{class:'hint'},' · '+x.site+(x.source==='admin'?' · '+t('index.punch_admin'):'')))):[h('p',{class:'hint'},t('index.punches_empty'))]))}
 const LV=k=>t('leave.kind.'+k);
 async function loadLeave(){const r=await api('GET','/api/leave/mine');
  mylv.replaceChildren(...r.slice(0,5).map(x=>h('div',{style:'padding:.6rem 0;border-top:1px solid var(--line)'},
@@ -130,6 +138,6 @@ rf.onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData
  if(ME.role==='admin'){document.querySelector('.top-in .spacer').replaceWith(h('a',{href:'/admin',class:'btn ghost sm'},t('index.admin')))}
  if(QR){try{LOCK=await api('GET','/api/punch/site/'+encodeURIComponent(QR[1]));lockinfo.hidden=false;lockinfo.textContent='📍 '+LOCK.name}
   catch(e){QRBAD=true;lockinfo.hidden=false;lockinfo.className='hint bad';lockinfo.textContent=t('index.qr_bad')}}
- P.watchPermission(d=>{if(d)say(t('index.geo_blocked'),'bad')});loadMine();loadLeave();dayInfo();await refresh();
+ P.watchPermission(d=>{if(d)say(t('index.geo_blocked'),'bad')});loadMine();loadLeave();loadPunches();dayInfo();await refresh();
 })();
 </script></body></html>

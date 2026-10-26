@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Annotated, Literal, NoReturn
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from punctual.attempts import record_attempt
@@ -133,6 +133,33 @@ def status(user: Annotated[Me, Depends(current_user)]) -> Status:
         else None,
         early_out_minutes=settings.early_out_minutes,
     )
+
+
+@router.get("/mine")
+def my_punches(
+    user: Annotated[Me, Depends(current_user)],
+    date_from: Annotated[date, Query(alias="from")],
+    date_to: Annotated[date, Query(alias="to")],
+) -> list[dict[str, str]]:
+    """The caller's own punches (voided ones excluded) for local days [from, to], newest first."""
+    start, end = day_bounds(date_from, date_to)
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT p.kind, p.ts_utc, p.source, s.name AS site FROM live_punches p "
+            "JOIN sites s ON s.id = p.site_id WHERE p.employee_id = ? AND p.ts_utc >= ? AND p.ts_utc < ? "
+            "ORDER BY p.ts_utc DESC, p.id DESC",
+            (user.id, utc_str(start), utc_str(end)),
+        ).fetchall()
+    return [
+        {
+            "kind": r["kind"],
+            "day": local_str(r["ts_utc"], "%Y-%m-%d"),
+            "time": local_hm(r["ts_utc"]),
+            "site": r["site"],
+            "source": r["source"],
+        }
+        for r in rows
+    ]
 
 
 @router.get("/site/{key}")

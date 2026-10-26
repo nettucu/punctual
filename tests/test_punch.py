@@ -346,3 +346,12 @@ def test_delete_employee_only_without_history(client):
     _punch(client, sid, "in")
     login(client, "boss@example.com")
     assert client.delete(f"/api/employees/{ana}").status_code == 409
+
+
+def test_my_punches_lists_own_only(client):
+    sid = setup_site(client)
+    body = {"site_id": sid, "kind": "in", **HERE}
+    assert client.post("/api/punch", json=body).status_code == 201
+    today = client.get("/api/punch/status").json()["last"]["ts_utc"][:10]
+    rows = client.get(f"/api/punch/mine?from={today}&to={today}").json()
+    assert [(r["kind"], r["site"]) for r in rows] == [("in", "Main Clinic")]
