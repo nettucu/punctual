@@ -115,6 +115,7 @@ h1 .ico{margin-right:.5rem;color:var(--brand-strong);position:relative;top:-2px}
 .side .foot .who{display:block;flex:1;overflow:hidden;text-overflow:ellipsis;font-size:.9rem;color:var(--text)}
 body.admin main{margin-left:15.5rem;max-width:none;padding-left:2rem;padding-right:2rem}
 body.admin main>*{max-width:72rem}
+body.admin main>.card.flush{max-width:none}
 .mtop,.scrim{display:none}
 .sidetoggle{position:fixed;top:.9rem;left:15.9rem;z-index:31;width:2rem;height:2rem;padding:0;transition:left .25s}
 body.side-off .side{transform:translateX(-100%)}
